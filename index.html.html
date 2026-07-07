@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Лист оцінки ТП під час візиту</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+:root{
+  --ink-900:#101B2A;
+  --ink-700:#3C4A5E;
+  --ink-500:#6B7686;
+  --paper-0:#EFEBE1;
+  --paper-100:#E3DDCB;
+  --card:#FFFFFF;
+  --accent-gold:#A9740E;
+  --accent-gold-dark:#8A5E0A;
+  --accent-gold-soft:#F1E0B6;
+  --accent-teal:#2F6F62;
+  --accent-teal-soft:#D9E8E3;
+  --danger:#B3432B;
+  --danger-soft:#F3DCD3;
+  --line:#D8D0BB;
+  --radius:18px;
+  --radius-sm:12px;
+  --shadow:0 10px 30px rgba(16,27,42,0.10);
+  --shadow-sm:0 2px 8px rgba(16,27,42,0.06);
+  --font-display:'Space Grotesk',sans-serif;
+  --font-body:'Inter',sans-serif;
+  --font-mono:'JetBrains Mono',monospace;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:
+    radial-gradient(1200px 600px at 50% -10%, #F7F3E9 0%, var(--paper-0) 55%),
+    var(--paper-0);
+  color:var(--ink-900);
+  font-family:var(--font-body);
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+button{font-family:inherit;cursor:pointer;}
+input,select,textarea{font-family:inherit;}
+::selection{background:var(--accent-gold-soft);}
+
+/* ---------- topbar ---------- */
+.topbar{
+  position:sticky;top:0;z-index:40;
+  background:var(--ink-900);
+  color:#F2EFE7;
+  padding:16px 20px;
+  box-shadow:0 4px 16px rgba(16,27,42,0.25);
+}
+.topbar-inner{max-width:640px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.topbar-title{display:flex;flex-direction:column;gap:2px;}
+.topbar-title .eyebrow{
+  font-family:var(--font-mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent-gold-soft);opacity:.85;
+}
+.topbar-title h1{font-family:var(--font-display);font-size:19px;font-weight:600;margin:0;letter-spacing:-.01em;}
+.gear-btn{
+  width:38px;height:38px;border-radius:50%;border:1px solid rgba(255,255,255,0.18);
+  background:rgba(255,255,255,0.06);color:#F2EFE7;display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;transition:background .15s ease, transform .15s ease;
+}
+.gear-btn:hover{background:rgba(255,255,255,0.14);transform:rotate(20deg);}
+.gear-btn svg{width:18px;height:18px;}
+
+.stepper{max-width:640px;margin:12px auto 0;display:flex;align-items:center;gap:6px;padding:0 2px;}
+.step{display:flex;align-items:center;gap:8px;flex:1;}
+.step-dot{
+  width:24px;height:24px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-mono);font-size:11px;font-weight:600;
+  border:1.5px solid rgba(255,255,255,0.35);color:rgba(255,255,255,0.55);
+  transition:all .25s ease;
+}
+.step-label{font-size:12px;color:rgba(242,239,231,0.5);white-space:nowrap;transition:color .25s ease;}
+.step-line{flex:1;height:1.5px;background:rgba(255,255,255,0.18);margin:0 2px;transition:background .25s ease;}
+.step.done .step-dot{background:var(--accent-gold);border-color:var(--accent-gold);color:var(--ink-900);}
+.step.active .step-dot{border-color:var(--accent-gold-soft);color:#F2EFE7;box-shadow:0 0 0 3px rgba(169,116,14,0.35);}
+.step.done .step-label,.step.active .step-label{color:#F2EFE7;}
+.step.done + .step-line{background:var(--accent-gold);}
+
+/* ---------- layout ---------- */
+.wrap{max-width:640px;margin:0 auto;padding:22px 18px 90px;}
+.card{
+  background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);
+  padding:26px 24px;margin-bottom:18px;border:1px solid rgba(16,27,42,0.04);
+}
+.screen{display:none;}
+.screen.active{display:block;animation:fadeIn .35s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+h2.screen-title{font-family:var(--font-display);font-size:22px;margin:0 0 4px;letter-spacing:-.01em;}
+p.screen-sub{color:var(--ink-500);font-size:14px;margin:0 0 22px;line-height:1.5;}
+
+.field{margin-bottom:18px;}
+.field label{display:block;font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-700);margin-bottom:7px;}
+.field input[type=text],.field input[type=date],.field input[type=time],.field textarea{
+  width:100%;padding:12px 14px;border-radius:var(--radius-sm);border:1.5px solid var(--line);
+  background:#FBF9F4;font-size:15px;color:var(--ink-900);transition:border-color .15s ease, background .15s ease;
+}
+.field input:focus,.field textarea:focus{outline:none;border-color:var(--accent-gold);background:#fff;}
+.field .hint{font-size:12px;color:var(--ink-500);margin-top:6px;}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.row3{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:12px;}
+@media (max-width:420px){.row3{grid-template-columns:1fr;}}
+
+.chip-group{display:flex;flex-wrap:wrap;gap:8px;}
+.chip{
+  padding:10px 16px;border-radius:999px;border:1.5px solid var(--line);background:#FBF9F4;
+  font-size:14px;font-weight:500;color:var(--ink-700);transition:all .15s ease;
+}
+.chip:hover{border-color:var(--accent-gold);}
+.chip.active{background:var(--ink-900);border-color:var(--ink-900);color:#F2EFE7;}
+
+.required-star{color:var(--accent-gold-dark);margin-left:2px;}
+
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:14px 22px;border-radius:999px;border:none;font-size:15px;font-weight:600;
+  transition:transform .12s ease, box-shadow .12s ease, background .15s ease;
+}
+.btn-primary{background:var(--accent-gold);color:#26190A;box-shadow:0 6px 18px rgba(169,116,14,0.35);}
+.btn-primary:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 8px 22px rgba(169,116,14,0.45);}
+.btn-primary:disabled{background:#DAD3C0;color:#9C9686;box-shadow:none;cursor:not-allowed;}
+.btn-dark{background:var(--ink-900);color:#F2EFE7;}
+.btn-dark:hover{transform:translateY(-1px);}
+.btn-outline{background:transparent;border:1.5px solid var(--ink-900);color:var(--ink-900);}
+.btn-outline:hover{background:var(--ink-900);color:#F2EFE7;}
+.btn-ghost{background:transparent;color:var(--ink-700);text-decoration:underline;padding:10px 6px;}
+.btn-block{width:100%;}
+.btn-sm{padding:9px 16px;font-size:13px;}
+
+.actions-bar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:8px;}
+.progress-note{font-family:var(--font-mono);font-size:12px;color:var(--ink-500);}
+
+/* ---------- checklist ---------- */
+.progress-track{height:6px;border-radius:99px;background:var(--paper-100);overflow:hidden;margin-bottom:24px;}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--accent-gold),var(--accent-teal));border-radius:99px;transition:width .3s ease;}
+
+.section-block{margin-bottom:30px;}
+.section-block:last-child{margin-bottom:8px;}
+.section-head{display:flex;align-items:baseline;gap:10px;padding-bottom:10px;border-bottom:1.5px solid var(--line);margin-bottom:16px;}
+.section-num{font-family:var(--font-mono);font-weight:600;font-size:14px;color:var(--accent-gold-dark);}
+.section-title{font-family:var(--font-display);font-size:17px;font-weight:600;}
+.section-phase{margin-left:auto;font-size:11px;color:var(--ink-500);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.06em;}
+.section-note{font-size:12.5px;font-style:italic;color:var(--ink-500);margin:-8px 0 14px;}
+
+.item{margin-bottom:20px;padding-bottom:18px;border-bottom:1px dashed var(--line);}
+.item:last-child{border-bottom:none;}
+.item-label{font-size:14.5px;font-weight:500;color:var(--ink-900);margin-bottom:10px;line-height:1.4;}
+.answer-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
+.ans-btn{
+  padding:8px 15px;border-radius:10px;border:1.5px solid var(--line);background:#FBF9F4;
+  font-size:13.5px;font-weight:600;color:var(--ink-700);transition:all .12s ease;
+}
+.ans-btn[data-v="Так"].active{background:var(--accent-teal);border-color:var(--accent-teal);color:#fff;}
+.ans-btn[data-v="Ні"].active{background:var(--danger);border-color:var(--danger);color:#fff;}
+.ans-btn[data-v="Н/З"].active{background:var(--ink-500);border-color:var(--ink-500);color:#fff;}
+.ans-btn.opt.active{background:var(--ink-900);border-color:var(--ink-900);color:#fff;}
+.item-comment{
+  width:100%;padding:9px 12px;border-radius:10px;border:1.5px solid var(--line);background:#FBF9F4;
+  font-size:13.5px;color:var(--ink-900);resize:vertical;min-height:38px;
+}
+.item-comment:focus{outline:none;border-color:var(--accent-gold);background:#fff;}
+.item-comment::placeholder{color:#AFA894;}
+.extra-fields{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
+.extra-fields input{
+  flex:1;min-width:140px;padding:8px 11px;border-radius:10px;border:1.5px solid var(--line);
+  background:#FBF9F4;font-size:13px;
+}
+.extra-fields input:focus{outline:none;border-color:var(--accent-gold);background:#fff;}
+.number-row{display:flex;align-items:center;gap:10px;}
+.number-row input{
+  width:100px;padding:9px 12px;border-radius:10px;border:1.5px solid var(--line);
+  background:#FBF9F4;font-family:var(--font-mono);font-size:15px;text-align:center;
+}
+.number-row input:focus{outline:none;border-color:var(--accent-gold);}
+.number-row .unit{font-size:13px;color:var(--ink-500);}
+
+/* ---------- processing ---------- */
+.processing-wrap{text-align:center;padding:50px 10px;}
+.spinner{
+  width:52px;height:52px;border-radius:50%;margin:0 auto 22px;
+  border:4px solid var(--paper-100);border-top-color:var(--accent-gold);
+  animation:spin 0.9s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+.processing-msg{font-family:var(--font-display);font-size:16px;color:var(--ink-700);}
+
+/* ---------- gauge ---------- */
+.gauge-wrap{display:flex;flex-direction:column;align-items:center;padding:6px 0 4px;}
+.gauge-level-label{font-family:var(--font-display);font-size:20px;font-weight:600;margin-top:2px;}
+.gauge-level-sub{font-family:var(--font-mono);font-size:11px;color:var(--ink-500);text-transform:uppercase;letter-spacing:.08em;}
+
+/* ---------- result cards ---------- */
+.result-card{border-radius:var(--radius-sm);padding:18px 20px;margin-bottom:14px;}
+.result-card.strengths{background:var(--accent-teal-soft);border:1px solid #BFDBD2;}
+.result-card.growth{background:var(--accent-gold-soft);border:1px solid #E4CE8F;}
+.result-card h3{font-family:var(--font-display);font-size:14.5px;margin:0 0 8px;display:flex;align-items:center;gap:8px;}
+.result-card p{margin:0;font-size:14px;line-height:1.55;color:var(--ink-900);}
+.result-card.strengths h3{color:var(--accent-teal);}
+.result-card.growth h3{color:var(--accent-gold-dark);}
+
+.qcard{background:#FBF9F4;border:1px solid var(--line);border-radius:var(--radius-sm);padding:18px 20px;margin-bottom:16px;}
+.qcard h3{font-family:var(--font-display);font-size:15px;margin:0 0 10px;}
+.qcard .opening{font-size:13.5px;font-style:italic;color:var(--ink-700);margin-bottom:12px;padding-bottom:12px;border-bottom:1px dashed var(--line);}
+.qlist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px;}
+.qlist li{display:flex;gap:10px;font-size:14px;line-height:1.5;}
+.qlist .qnum{font-family:var(--font-mono);color:var(--accent-gold-dark);font-weight:600;flex-shrink:0;}
+
+.sync-row{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--ink-500);margin:6px 0 18px;}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:var(--ink-500);flex-shrink:0;}
+.sync-dot.sending{background:var(--accent-gold);animation:pulse 1s ease-in-out infinite;}
+.sync-dot.done{background:var(--accent-teal);}
+.sync-dot.error{background:var(--danger);}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.35;}}
+.sync-retry{background:none;border:none;color:var(--accent-gold-dark);text-decoration:underline;font-size:13px;padding:0;}
+
+.download-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px;}
+
+/* ---------- settings modal ---------- */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(16,27,42,0.45);display:none;
+  align-items:flex-start;justify-content:center;z-index:100;padding:70px 16px;
+}
+.modal-overlay.active{display:flex;}
+.modal{background:#fff;border-radius:var(--radius);padding:24px;max-width:420px;width:100%;box-shadow:var(--shadow);}
+.modal h3{font-family:var(--font-display);margin:0 0 6px;font-size:17px;}
+.modal p{font-size:13px;color:var(--ink-500);margin:0 0 16px;line-height:1.5;}
+.modal input{width:100%;padding:11px 13px;border-radius:10px;border:1.5px solid var(--line);font-size:13.5px;margin-bottom:12px;font-family:var(--font-mono);}
+.modal input:focus{outline:none;border-color:var(--accent-gold);}
+.modal-actions{display:flex;justify-content:flex-end;gap:8px;}
+.modal-status{font-size:12.5px;margin-top:8px;color:var(--ink-500);}
+
+.tp-mentor-footer{max-width:640px;margin:0 auto;padding:0 18px 40px;text-align:center;color:var(--ink-500);font-size:12px;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="topbar-title">
+      <span class="eyebrow">ПКБ → АКБ · Оцінка візиту</span>
+      <h1>Лист оцінки ТП</h1>
+    </div>
+    <button class="gear-btn" onclick="openSettings()" title="Налаштування">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 15a3 3 0 100-6 3 3 0 000 6z"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 005 15a1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 007.51 5a1.65 1.65 0 00.99-1.51V3a2 2 0 114 0v.09A1.65 1.65 0 0015 4.6a1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+    </button>
+  </div>
+  <div class="stepper" id="stepper"></div>
+</div>
+
+<div class="wrap">
+
+  <!-- SCREEN 1: INFO -->
+  <div class="screen" id="screen-info">
+    <div class="card">
+      <h2 class="screen-title">Дані візиту</h2>
+      <p class="screen-sub">Заповніть перед початком спостереження. Це займе менше хвилини.</p>
+
+      <div class="field">
+        <label>Кого оцінюють — ПІБ ТП<span class="required-star">*</span></label>
+        <input type="text" id="in_tpName" placeholder="Напр. Іваненко Іван Іванович" oninput="setInfo('tpName', this.value)">
+      </div>
+
+      <div class="field">
+        <label>Хто оцінює — ПІБ КН / наставника<span class="required-star">*</span></label>
+        <input type="text" id="in_managerName" placeholder="Напр. Петренко Петро Петрович" oninput="setInfo('managerName', this.value)">
+      </div>
+
+      <div class="field">
+        <label>Назва точки / СТО<span class="required-star">*</span></label>
+        <input type="text" id="in_pointName" placeholder="Напр. СТО «Швидкий сервіс», м. Дніпро" oninput="setInfo('pointName', this.value)">
+      </div>
+
+      <div class="field">
+        <label>Дата і час<span class="required-star">*</span></label>
+        <div class="row3">
+          <input type="date" id="in_visitDate" oninput="setInfo('visitDate', this.value)">
+          <input type="time" id="in_timeFrom" oninput="setInfo('timeFrom', this.value)">
+          <input type="time" id="in_timeTo" oninput="setInfo('timeTo', this.value)">
+        </div>
+        <div class="hint">Дата · час початку (обов'язково) · час завершення (можна вказати пізніше)</div>
+      </div>
+
+      <div class="field">
+        <label>Формат візиту<span class="required-star">*</span></label>
+        <div class="chip-group" id="grp_format">
+          <button class="chip" data-v="спільний" onclick="setInfoChoice('format','спільний',this)">Спільний</button>
+          <button class="chip" data-v="самостійний (під наглядом)" onclick="setInfoChoice('format','самостійний (під наглядом)',this)">Самостійний (під наглядом)</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Статус точки<span class="required-star">*</span></label>
+        <div class="chip-group" id="grp_status">
+          <button class="chip" data-v="ПКБ (перший візит)" onclick="setInfoChoice('status','ПКБ (перший візит)',this)">ПКБ (перший візит)</button>
+          <button class="chip" data-v="ПКБ (повторний візит)" onclick="setInfoChoice('status','ПКБ (повторний візит)',this)">ПКБ (повторний візит)</button>
+          <button class="chip" data-v="АКБ (підтримка)" onclick="setInfoChoice('status','АКБ (підтримка)',this)">АКБ (підтримка)</button>
+        </div>
+      </div>
+
+      <div class="actions-bar">
+        <span class="progress-note" id="info-progress-note">0/6 заповнено</span>
+        <button class="btn btn-primary" id="btn-continue" disabled onclick="goToChecklist()">Продовжити →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN 2: CHECKLIST -->
+  <div class="screen" id="screen-checklist">
+    <div class="card">
+      <h2 class="screen-title">Чек-лист візиту</h2>
+      <p class="screen-sub">Розділи 1–5 заповнюйте по ходу візиту, розділ 6 — одразу після завершення.</p>
+      <div class="progress-track"><div class="progress-fill" id="checklist-progress-fill" style="width:0%"></div></div>
+      <div id="sections-container"></div>
+      <div class="actions-bar">
+        <span class="progress-note" id="checklist-progress-note">0/0 пунктів оцінено</span>
+        <button class="btn btn-primary" id="btn-finish" disabled onclick="finishEvaluation()">Завершити оцінку ✓</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN 3: PROCESSING -->
+  <div class="screen" id="screen-processing">
+    <div class="card processing-wrap">
+      <div class="spinner"></div>
+      <div class="processing-msg" id="processing-msg">Аналізуємо відповіді…</div>
+    </div>
+  </div>
+
+  <!-- SCREEN 4: RESULTS -->
+  <div class="screen" id="screen-results">
+    <div class="card">
+      <h2 class="screen-title">Підсумкова оцінка</h2>
+      <p class="screen-sub">Сформовано автоматично на основі заповненого чек-листа.</p>
+      <div class="gauge-wrap" id="gauge-container"></div>
+      <div class="result-card strengths">
+        <h3>✓ Сильні сторони</h3>
+        <p id="res-strengths"></p>
+      </div>
+      <div class="result-card growth">
+        <h3>↗ Зони росту</h3>
+        <p id="res-growth"></p>
+      </div>
+
+      <div class="sync-row">
+        <span class="sync-dot" id="sync-dot"></span>
+        <span id="sync-text">Очікує на надсилання даних у Google Таблицю…</span>
+        <button class="sync-retry" id="sync-retry-btn" style="display:none" onclick="submitToSheet()">Повторити</button>
+      </div>
+
+      <div class="download-row">
+        <button class="btn btn-dark" onclick="downloadDocx()">⬇ Завантажити лист оцінки (.docx)</button>
+        <button class="btn btn-outline btn-sm" onclick="resetApp()">Нова оцінка</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="qcard" style="background:transparent;border:none;padding:0;">
+        <h3>Обговорення з ТП — з чого почати</h3>
+        <div class="opening" id="res-opening"></div>
+        <h3 style="margin-top:16px;">Питання для обговорення</h3>
+        <ul class="qlist" id="res-questions"></ul>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="tp-mentor-footer">Мета візиту — зібрати інформацію про клієнта і просунути його з ПКБ в АКБ.</div>
+
+<!-- SETTINGS MODAL -->
+<div class="modal-overlay" id="settings-modal">
+  <div class="modal">
+    <h3>Інтеграція з Google Таблицею</h3>
+    <p>Вставте URL Web App, отриманий після деплою Google Apps Script (див. інструкцію для розробника). Значення діє лише для поточної сесії.</p>
+    <input type="text" id="gas-url-input" placeholder="https://script.google.com/macros/s/…/exec">
+    <div class="modal-actions">
+      <button class="btn btn-ghost btn-sm" onclick="closeSettings()">Закрити</button>
+      <button class="btn btn-outline btn-sm" onclick="testSheetConnection()">Перевірити</button>
+      <button class="btn btn-primary btn-sm" onclick="saveGasUrl()">Зберегти</button>
+    </div>
+    <div class="modal-status" id="settings-status"></div>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   CONFIG
+   ---------------------------------------------------------
+   Перед реальним деплоєм вставте сюди готовий Web App URL
+   вашого Google Apps Script (див. інструкцію) — тоді дані
+   будуть автоматично надсилатись у таблицю без додаткових
+   налаштувань з боку КН/наставника.
+   ========================================================= */
+const CONFIG = {
+  GAS_URL: 'https://script.google.com/macros/s/AKfycbzfnBJBGLqKcPx8rfChfdn756vriq5up_1SsFK-lrI2hvjnfslCCrsps8Kux-Lj9rnfTw/exec', // <-- ВСТАВТЕ URL ДЕПЛОЮ APPS SCRIPT (".../exec")
+  ANTHROPIC_MODEL: 'claude-sonnet-4-6'
+};
+
+/* =========================================================
+   CHECKLIST DATA MODEL — single source of truth for the
+   UI renderer, the AI prompt builder, and the docx export.
+   ========================================================= */
+const SECTIONS = [
+  { num:'01', title:"Вхід і контакт", phase:"Під час візиту", items:[
+    { id:'s1_purpose', label:"Озвучив мету візиту на початку", type:'yn3' },
+    { id:'s1_name', label:"Знає ім'я співрозмовника / пам'ятає попередні домовленості", type:'yn3' },
+    { id:'s1_contact', label:"З ким говорили", type:'text2', fields:[{key:'name',label:"ПІБ"},{key:'position',label:"Посада"}] }
+  ]},
+  { num:'02', title:"Збір інформації про клієнта", items:[
+    { id:'s2_volume', label:"З'ясував обсяги споживання", type:'yn3' },
+    { id:'s2_supplier', label:"З'ясував поточного постачальника", type:'yn3' },
+    { id:'s2_packaging', label:"Уточнив наявність бочкової тари / фасовки", type:'yn3' },
+    { id:'s2_lpr', label:"Зафіксував контакти ЛПР (ПІБ, посада, телефон)", type:'yn3', fields:[{key:'lprName',label:"ПІБ ЛПР"}] },
+    { id:'s2_needs', label:"Виявив додаткові потреби (допродаж, нові позиції)", type:'yn3' }
+  ]},
+  { num:'03', title:"Впевненість і заперечення", note:"Відмічайте, коли ситуація дійсно виникла під час розмови.", items:[
+    { id:'s3_calm', label:"Спокійно реагує на відмову / різкість клієнта", type:'yn3' },
+    { id:'s3_tech', label:"Впевнено відповідає на технічні питання (допуски мастил, специфікації)", type:'yn3' },
+    { id:'s3_honest', label:"Якщо не знає відповіді — чесно каже «уточню», а не вигадує", type:'yn3' },
+    { id:'s3_price', label:"Працює з ціновими запереченнями аргументами, а не знижкою", type:'yn3' },
+    { id:'s3_compare', label:"Впевнено порівнює з конкурентами (Bardahl, Motul тощо)", type:'yn3' }
+  ]},
+  { num:'04', title:"Робота з ЛПР", items:[
+    { id:'s4_influence', label:"Розуміє, чи впливає співрозмовник на рішення", type:'yn3' },
+    { id:'s4_others', label:"Питає про інших причетних до рішення", type:'yn3' },
+    { id:'s4_adapt', label:"Адаптує аргументи під роль співрозмовника", type:'yn3' }
+  ]},
+  { num:'05', title:"Завершення візиту", items:[
+    { id:'s5_summary', label:"Підсумував домовленості вголос", type:'yn3' },
+    { id:'s5_nextstep', label:"Є конкретний next step: дата + відповідальний", type:'yn3', fields:[{key:'when',label:"Дата/час"},{key:'who',label:"Хто відповідальний"}] }
+  ]},
+  { num:'06', title:"Динаміка розмови", phase:"Після завершення візиту", note:"Ці пункти реально оцінити лише подивившись на візит в цілому.", items:[
+    { id:'s6_focus', label:"Розмова була більше про клієнта, ніж про продукт", type:'yn3' },
+    { id:'s6_who_talked', label:"Хто говорив більше", type:'select', options:['ТП','Клієнт','Порівну'] },
+    { id:'s6_duration', label:"Тривалість візиту", type:'number', unit:'хв' },
+    { id:'s6_interrupts', label:"Скільки разів ТП перебив клієнта", type:'number', unit:'разів' },
+    { id:'s6_tension', label:"Була напруга/конфлікт", type:'yn2', fields:[{key:'resolution',label:"Як вийшов з ситуації"}] },
+    { id:'s6_result', label:"Результат візиту", type:'select', options:['Залишається в ПКБ','Переведено в АКБ','Потрібен повторний візит'] }
+  ]}
+];
+const LEVELS = ['Низький','Середній','Високий','Готовий до самостійної роботи'];
+
+/* =========================================================
+   STATE
+   ========================================================= */
+let state = {
+  screen: 'info',
+  info: { tpName:'', managerName:'', pointName:'', visitDate:'', timeFrom:'', timeTo:'', format:'', status:'' },
+  checklist: {},
+  aiResult: null,
+  sheetStatus: 'idle',
+  gasUrlOverride: ''
+};
+SECTIONS.forEach(sec => sec.items.forEach(item => { state.checklist[item.id] = { answer:'', comment:'' }; }));
+
+/* =========================================================
+   SCREEN / STEPPER RENDERING
+   ========================================================= */
+function showScreen(name){
+  state.screen = name;
+  document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  renderStepper();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function renderStepper(){
+  const order = ['info','checklist','results'];
+  const activeIdx = order.indexOf(state.screen === 'processing' ? 'results' : state.screen);
+  const labels = ['Дані візиту','Чек-лист','Підсумок'];
+  let html = '';
+  order.forEach((key, i) => {
+    const cls = i < activeIdx ? 'done' : (i === activeIdx ? 'active' : '');
+    html += '<div class="step ' + cls + '"><div class="step-dot">' + (i+1) + '</div><span class="step-label">' + labels[i] + '</span></div>';
+    if(i < order.length - 1) html += '<div class="step-line"></div>';
+  });
+  document.getElementById('stepper').innerHTML = html;
+}
+
+/* =========================================================
+   SCREEN 1 — INFO
+   ========================================================= */
+function setInfo(field, value){
+  state.info[field] = value;
+  validateInfo();
+}
+function setInfoChoice(field, value, btnEl){
+  state.info[field] = value;
+  btnEl.parentElement.querySelectorAll('.chip').forEach(b => b.classList.remove('active'));
+  btnEl.classList.add('active');
+  validateInfo();
+}
+function validateInfo(){
+  const i = state.info;
+  const requiredOk = [i.tpName, i.managerName, i.pointName, i.visitDate, i.timeFrom, i.format, i.status];
+  const filled = requiredOk.filter(v => v && String(v).trim() !== '').length;
+  document.getElementById('info-progress-note').textContent = filled + '/7 заповнено';
+  document.getElementById('btn-continue').disabled = filled < 7;
+}
+function goToChecklist(){
+  renderChecklist();
+  showScreen('checklist');
+}
+
+/* =========================================================
+   SCREEN 2 — CHECKLIST
+   ========================================================= */
+function isItemRequired(item){ return item.type !== 'text2'; }
+function isItemAnswered(item, data){
+  if(item.type === 'number') return data.answer !== '' && data.answer !== undefined && data.answer !== null;
+  return !!data.answer;
+}
+
+function renderChecklist(){
+  let html = '';
+  SECTIONS.forEach(sec => {
+    html += '<div class="section-block">';
+    html += '<div class="section-head"><span class="section-num">' + sec.num + '</span><span class="section-title">' + sec.title + '</span>' + (sec.phase ? '<span class="section-phase">' + sec.phase + '</span>' : '') + '</div>';
+    if(sec.note) html += '<div class="section-note">' + sec.note + '</div>';
+    sec.items.forEach(item => { html += renderItem(item); });
+    html += '</div>';
+  });
+  document.getElementById('sections-container').innerHTML = html;
+  updateChecklistProgress();
+}
+
+function renderItem(item){
+  let inner = '<div class="item-label">' + item.label + '</div>';
+  if(item.type === 'yn3' || item.type === 'yn2'){
+    const opts = item.type === 'yn3' ? ['Так','Ні','Н/З'] : ['Так','Ні'];
+    inner += '<div class="answer-row" id="ans_' + item.id + '">';
+    opts.forEach(o => { inner += '<button type="button" class="ans-btn" data-v="' + o + '" onclick="setAnswer(\'' + item.id + '\',\'' + o + '\',this)">' + o + '</button>'; });
+    inner += '</div>';
+    inner += '<textarea class="item-comment" placeholder="Коментар (необов\'язково)" oninput="setComment(\'' + item.id + '\', this.value)"></textarea>';
+  } else if(item.type === 'select'){
+    inner += '<div class="answer-row" id="ans_' + item.id + '">';
+    item.options.forEach(o => { inner += '<button type="button" class="ans-btn opt" data-v="' + o + '" onclick="setAnswer(\'' + item.id + '\',\'' + o + '\',this)">' + o + '</button>'; });
+    inner += '</div>';
+  } else if(item.type === 'number'){
+    inner += '<div class="number-row"><input type="number" min="0" oninput="setAnswer(\'' + item.id + '\', this.value, null)"><span class="unit">' + item.unit + '</span></div>';
+  } else if(item.type === 'text2'){
+    inner += '<div class="extra-fields">';
+    item.fields.forEach(f => { inner += '<input type="text" placeholder="' + f.label + '" oninput="setExtra(\'' + item.id + '\',\'' + f.key + '\', this.value)">'; });
+    inner += '</div>';
+  }
+  if(item.fields && item.type !== 'text2'){
+    inner += '<div class="extra-fields">';
+    item.fields.forEach(f => { inner += '<input type="text" placeholder="' + f.label + '" oninput="setExtra(\'' + item.id + '\',\'' + f.key + '\', this.value)">'; });
+    inner += '</div>';
+  }
+  return '<div class="item">' + inner + '</div>';
+}
+
+function setAnswer(itemId, value, btnEl){
+  state.checklist[itemId].answer = value;
+  if(btnEl){
+    const group = btnEl.parentElement;
+    group.querySelectorAll('.ans-btn').forEach(b => b.classList.remove('active'));
+    btnEl.classList.add('active');
+  }
+  updateChecklistProgress();
+}
+function setComment(itemId, value){ state.checklist[itemId].comment = value; }
+function setExtra(itemId, key, value){ state.checklist[itemId][key] = value; }
+
+function updateChecklistProgress(){
+  let total = 0, done = 0;
+  SECTIONS.forEach(sec => sec.items.forEach(item => {
+    if(!isItemRequired(item)) return;
+    total++;
+    if(isItemAnswered(item, state.checklist[item.id])) done++;
+  }));
+  const pct = total ? Math.round((done/total)*100) : 0;
+  document.getElementById('checklist-progress-fill').style.width = pct + '%';
+  document.getElementById('checklist-progress-note').textContent = done + '/' + total + ' пунктів оцінено';
+  document.getElementById('btn-finish').disabled = done < total;
+}
+
+/* =========================================================
+   FORMATTING HELPERS
+   ========================================================= */
+function formatDateTime(info){
+  let d = info.visitDate ? info.visitDate.split('-').reverse().join('.') : '—';
+  let t = info.timeFrom ? (' , з ' + info.timeFrom + (info.timeTo ? ' до ' + info.timeTo : '')) : '';
+  return d + t;
+}
+function describeAnswer(item, data){
+  if(item.type === 'number') return (data.answer !== '' && data.answer != null) ? (data.answer + ' ' + item.unit) : '—';
+  return data.answer || '—';
+}
+
+/* =========================================================
+   AI CALL
+   ========================================================= */
+function buildPrompt(){
+  const info = state.info;
+  let lines = [];
+  lines.push("Ти — досвідчений керівник відділу продажів мастил і автохімії, який допомагає керівнику напрямку (КН) підготувати якісний зворотній зв'язок торговому представнику (ТП) після оцінки його візиту до клієнта (СТО). Мета програми компанії — просувати клієнтів зі статусу ПКБ (потенційна клієнтська база) в АКБ (активна клієнтська база).");
+  lines.push('');
+  lines.push('Дані візиту:');
+  lines.push('- Кого оцінюють (ТП): ' + (info.tpName || '—'));
+  lines.push('- Хто оцінює: ' + (info.managerName || '—'));
+  lines.push('- Точка/СТО: ' + (info.pointName || '—'));
+  lines.push('- Дата і час: ' + formatDateTime(info));
+  lines.push('- Формат візиту: ' + (info.format || '—'));
+  lines.push('- Статус точки: ' + (info.status || '—'));
+  lines.push('');
+  lines.push('Результати чек-листа по розділах:');
+  SECTIONS.forEach(sec => {
+    lines.push(sec.num + '. ' + sec.title + ':');
+    sec.items.forEach(item => {
+      const d = state.checklist[item.id] || {};
+      if(item.type === 'text2'){
+        const vals = (item.fields||[]).map(f => f.label + ': ' + (d[f.key] || '—')).join(', ');
+        lines.push('  - ' + item.label + ' — ' + vals);
+      } else {
+        const val = describeAnswer(item, d);
+        const extra = (item.fields||[]).map(f => f.label + ': ' + (d[f.key] || '—')).join('; ');
+        lines.push('  - ' + item.label + ': ' + val + (d.comment ? ' (Коментар: ' + d.comment + ')' : '') + (extra ? ' [' + extra + ']' : ''));
+      }
+    });
+  });
+  lines.push('');
+  lines.push('Заповни підсумкову оцінку та підготуй запитання для обговорення з ТП. Поверни ВИКЛЮЧНО валідний JSON без жодного додаткового тексту, пояснень чи markdown-розмітки, у такому форматі:');
+  lines.push('{"confidenceLevel":"Низький або Середній або Високий або Готовий до самостійної роботи","strengths":"2-4 речення українською, конкретно про цей візит","growthAreas":"2-4 речення українською, конкретно і по-діловому, без образливих формулювань","openingSuggestion":"1 речення — з чого краще почати розмову з ТП","discussionQuestions":["4-6 конкретних відкритих запитань для обговорення з ТП, українською"]}');
+  return lines.join('\n');
+}
+
+function normalizeAIResult(parsed){
+  let level = LEVELS.includes(parsed.confidenceLevel) ? parsed.confidenceLevel : 'Середній';
+  return {
+    confidenceLevel: level,
+    strengths: parsed.strengths || '—',
+    growthAreas: parsed.growthAreas || '—',
+    openingSuggestion: parsed.openingSuggestion || '',
+    discussionQuestions: Array.isArray(parsed.discussionQuestions) ? parsed.discussionQuestions.slice(0,6) : []
+  };
+}
+
+function fallbackAssessment(){
+  let yes=0, no=0, total=0;
+  SECTIONS.forEach(sec => sec.items.forEach(item => {
+    if(item.type === 'yn3' || item.type === 'yn2'){
+      const d = state.checklist[item.id] || {};
+      if(d.answer === 'Так') yes++;
+      if(d.answer === 'Ні') no++;
+      if(d.answer) total++;
+    }
+  }));
+  const ratio = total ? yes/total : 0;
+  let level = 'Середній';
+  if(ratio >= 0.9) level = 'Готовий до самостійної роботи';
+  else if(ratio >= 0.7) level = 'Високий';
+  else if(ratio >= 0.4) level = 'Середній';
+  else level = 'Низький';
+  return {
+    confidenceLevel: level,
+    strengths: 'Автоматичний аналіз ШІ тимчасово недоступний. За попереднім підрахунком ' + yes + ' із ' + total + ' пунктів позначено «Так» — це можна вважати орієнтовним рівнем впевненості ТП під час візиту.',
+    growthAreas: 'Перегляньте пункти чек-листа, позначені «Ні», та коментарі до них — саме там варто шукати конкретні зони для розвитку ТП.',
+    openingSuggestion: 'Почніть розмову з того, що вдалося найкраще, а тоді перейдіть до конкретних моментів для покращення.',
+    discussionQuestions: [
+      'Що, на твою думку, вдалося найкраще під час цього візиту?',
+      'Які моменти візиту були для тебе найскладнішими?',
+      'Що допомогло б тобі відчувати себе впевненіше наступного разу?',
+      'Який наступний крок ти плануєш зробити з цим клієнтом?'
+    ]
+  };
+}
+
+async function finishEvaluation(){
+  showScreen('processing');
+  const messages = ['Аналізуємо відповіді…','Формуємо підсумкову оцінку…','Готуємо запитання для обговорення…'];
+  let mi = 0;
+  document.getElementById('processing-msg').textContent = messages[0];
+  const msgTimer = setInterval(() => { mi = (mi+1) % messages.length; document.getElementById('processing-msg').textContent = messages[mi]; }, 1100);
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: CONFIG.ANTHROPIC_MODEL,
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: buildPrompt() }]
+      })
+    });
+    const data = await resp.json();
+    const textBlock = (data.content || []).find(b => b.type === 'text');
+    let raw = textBlock ? textBlock.text : '';
+    raw = raw.trim().replace(/^```json/i,'').replace(/^```/,'').replace(/```$/,'').trim();
+    const parsed = JSON.parse(raw);
+    state.aiResult = normalizeAIResult(parsed);
+  } catch(e){
+    console.error('AI assessment failed', e);
+    state.aiResult = fallbackAssessment();
+  }
+  clearInterval(msgTimer);
+  renderResults();
+  showScreen('results');
+  submitToSheet();
+}
+
+/* =========================================================
+   GAUGE SVG
+   ========================================================= */
+function pt(cx, cy, r, angleDeg){
+  const a = angleDeg * Math.PI / 180;
+  return { x: cx + r * Math.cos(a), y: cy - r * Math.sin(a) };
+}
+function arcPath(cx, cy, r, a1, a2){
+  const p1 = pt(cx, cy, r, a1), p2 = pt(cx, cy, r, a2);
+  return 'M ' + p1.x.toFixed(2) + ' ' + p1.y.toFixed(2) + ' A ' + r + ' ' + r + ' 0 0 1 ' + p2.x.toFixed(2) + ' ' + p2.y.toFixed(2);
+}
+function renderGaugeSVG(levelIdx){
+  const cx=150, cy=140, r=112;
+  const colors = ['#B3432B','#A9740E','#6FA391','#2F6F62'];
+  const bounds = [[180,135],[135,90],[90,45],[45,0]];
+  let arcs = '';
+  bounds.forEach((b,i) => {
+    arcs += '<path d="' + arcPath(cx,cy,r,b[0],b[1]) + '" stroke="' + colors[i] + '" stroke-width="16" fill="none" stroke-linecap="butt" opacity="' + (i===levelIdx? '1':'0.28') + '"/>';
+  });
+  const centerAngle = 180 - 45*levelIdx - 22.5;
+  const needleTip = pt(cx,cy,r-26,centerAngle);
+  const needleColor = '#101B2A';
+  let svg = '<svg viewBox="0 0 300 168" width="260" height="146">';
+  svg += arcs;
+  svg += '<line x1="' + cx + '" y1="' + cy + '" x2="' + needleTip.x.toFixed(2) + '" y2="' + needleTip.y.toFixed(2) + '" stroke="' + needleColor + '" stroke-width="4" stroke-linecap="round"/>';
+  svg += '<circle cx="' + cx + '" cy="' + cy + '" r="7" fill="' + needleColor + '"/>';
+  svg += '</svg>';
+  return svg;
+}
+
+/* =========================================================
+   RESULTS RENDER
+   ========================================================= */
+function renderResults(){
+  const r = state.aiResult;
+  const levelIdx = LEVELS.indexOf(r.confidenceLevel) === -1 ? 1 : LEVELS.indexOf(r.confidenceLevel);
+  document.getElementById('gauge-container').innerHTML =
+    renderGaugeSVG(levelIdx) +
+    '<div class="gauge-level-sub">Рівень впевненості</div>' +
+    '<div class="gauge-level-label">' + r.confidenceLevel + '</div>';
+  document.getElementById('res-strengths').textContent = r.strengths;
+  document.getElementById('res-growth').textContent = r.growthAreas;
+  document.getElementById('res-opening').textContent = r.openingSuggestion || '—';
+  let qhtml = '';
+  (r.discussionQuestions || []).forEach((q,i) => {
+    qhtml += '<li><span class="qnum">' + String(i+1).padStart(2,'0') + '</span><span>' + q + '</span></li>';
+  });
+  document.getElementById('res-questions').innerHTML = qhtml || '<li>—</li>';
+
+  state.sheetStatus = 'idle';
+  updateSyncUI();
+}
+
+/* =========================================================
+   GOOGLE SHEETS SYNC
+   ========================================================= */
+function updateSyncUI(){
+  const dot = document.getElementById('sync-dot');
+  const text = document.getElementById('sync-text');
+  const retry = document.getElementById('sync-retry-btn');
+  dot.className = 'sync-dot';
+  retry.style.display = 'none';
+  if(state.sheetStatus === 'sending'){
+    dot.classList.add('sending');
+    text.textContent = 'Надсилаємо дані у Google Таблицю…';
+  } else if(state.sheetStatus === 'done'){
+    dot.classList.add('done');
+    text.textContent = 'Дані надіслано у Google Таблицю.';
+  } else if(state.sheetStatus === 'error'){
+    dot.classList.add('error');
+    text.textContent = 'Не вдалося надіслати дані.';
+    retry.style.display = 'inline';
+  } else if(state.sheetStatus === 'nourl'){
+    dot.classList.add('error');
+    text.textContent = 'URL Google Apps Script не налаштований (див. налаштування ⚙).';
+    retry.style.display = 'inline';
+  } else {
+    text.textContent = 'Очікує на надсилання даних у Google Таблицю…';
+  }
+}
+
+async function submitToSheet(){
+  const url = state.gasUrlOverride || CONFIG.GAS_URL;
+  if(!url){ state.sheetStatus = 'nourl'; updateSyncUI(); return; }
+  state.sheetStatus = 'sending'; updateSyncUI();
+  const payload = {
+    timestamp: new Date().toISOString(),
+    tpName: state.info.tpName,
+    managerName: state.info.managerName,
+    pointName: state.info.pointName,
+    dateTime: formatDateTime(state.info),
+    format: state.info.format,
+    status: state.info.status,
+    confidenceLevel: state.aiResult ? state.aiResult.confidenceLevel : '',
+    strengths: state.aiResult ? state.aiResult.strengths : '',
+    growthAreas: state.aiResult ? state.aiResult.growthAreas : ''
+  };
+  try {
+    await fetch(url, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload)
+    });
+    state.sheetStatus = 'done';
+  } catch(e){
+    console.error('Sheet submit failed', e);
+    state.sheetStatus = 'error';
+  }
+  updateSyncUI();
+}
+
+/* =========================================================
+   SETTINGS MODAL
+   ========================================================= */
+function openSettings(){
+  document.getElementById('gas-url-input').value = state.gasUrlOverride || CONFIG.GAS_URL || '';
+  document.getElementById('settings-status').textContent = '';
+  document.getElementById('settings-modal').classList.add('active');
+}
+function closeSettings(){ document.getElementById('settings-modal').classList.remove('active'); }
+function saveGasUrl(){
+  state.gasUrlOverride = document.getElementById('gas-url-input').value.trim();
+  document.getElementById('settings-status').textContent = 'Збережено для поточної сесії.';
+}
+async function testSheetConnection(){
+  const url = document.getElementById('gas-url-input').value.trim();
+  const statusEl = document.getElementById('settings-status');
+  if(!url){ statusEl.textContent = 'Спочатку вставте URL.'; return; }
+  statusEl.textContent = 'Надсилаємо тестовий запит…';
+  try {
+    await fetch(url, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ test: true, timestamp: new Date().toISOString(), tpName: '(тест з’єднання)' })
+    });
+    statusEl.textContent = 'Запит надіслано. Перевірте, чи з\'явився тестовий рядок у таблиці (через no-cors застосунок не може підтвердити відповідь).';
+  } catch(e){
+    statusEl.textContent = 'Помилка запиту: перевірте правильність URL.';
+  }
+}
+
+/* =========================================================
+   DOCX EXPORT
+   ========================================================= */
+function escXml(str){
+  return String(str == null ? '' : str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&apos;');
+}
+function xrun(text, opts){
+  opts = opts || {};
+  const props = [];
+  if(opts.bold) props.push('<w:b/>');
+  if(opts.italic) props.push('<w:i/>');
+  if(opts.underline) props.push('<w:u w:val="single"/>');
+  if(opts.color) props.push('<w:color w:val="' + opts.color + '"/>');
+  if(opts.size) props.push('<w:sz w:val="' + opts.size + '"/>');
+  props.push('<w:rFonts w:ascii="Calibri" w:hAnsi="Calibri" w:cs="Calibri"/>');
+  const rpr = props.length ? '<w:rPr>' + props.join('') + '</w:rPr>' : '';
+  return '<w:r>' + rpr + '<w:t xml:space="preserve">' + escXml(text) + '</w:t></w:r>';
+}
+function xpara(content, opts){
+  opts = opts || {};
+  let runs;
+  if(typeof content === 'string') runs = xrun(content, opts);
+  else if(Array.isArray(content)) runs = content.map(r => xrun(r.text, r)).join('');
+  else runs = '';
+  const ppr = [];
+  if(opts.align) ppr.push('<w:jc w:val="' + opts.align + '"/>');
+  const spacing = [];
+  if(opts.before != null) spacing.push('w:before="' + opts.before + '"');
+  if(opts.after != null) spacing.push('w:after="' + opts.after + '"');
+  if(spacing.length) ppr.push('<w:spacing ' + spacing.join(' ') + '/>');
+  if(opts.borderBottom) ppr.push('<w:pBdr><w:bottom w:val="single" w:sz="' + (opts.borderSz||6) + '" w:space="4" w:color="' + (opts.borderColor||'B9B2A0') + '"/></w:pBdr>');
+  if(opts.indent) ppr.push('<w:ind w:left="' + opts.indent + '"/>');
+  const pprXml = ppr.length ? '<w:pPr>' + ppr.join('') + '</w:pPr>' : '';
+  return '<w:p>' + pprXml + runs + '</w:p>';
+}
+function xEmpty(){ return '<w:p/>'; }
+
+const INK='101B2A', MUTED='5B6472', GOLD='8A5E0A', GREEN='2F6F62', RED='B3432B';
+
+function buildDocxBody(){
+  let body = '';
+  body += xpara('ЛИСТ ОЦІНКИ ТП ПІД ЧАС ВІЗИТУ', { bold:true, size:36, color:INK, align:'center', after:220 });
+
+  function infoLine(label, value){ return xpara([{text:label+': ', bold:true, size:20},{text:value||'—', size:20}], {after:60}); }
+  body += infoLine('Кого оцінюють (ПІБ ТП)', state.info.tpName);
+  body += infoLine('Хто оцінює (ПІБ КН/наставника)', state.info.managerName);
+  body += infoLine('Назва точки / СТО', state.info.pointName);
+  body += infoLine('Дата і час', formatDateTime(state.info));
+  body += infoLine('Формат візиту', state.info.format);
+  body += infoLine('Статус точки', state.info.status);
+  body += xEmpty();
+
+  SECTIONS.forEach(sec => {
+    body += xpara([{text: sec.num + '  ', bold:true, size:24, color:GOLD},{text: sec.title, bold:true, size:24, color:INK}], {before:220, after:90, borderBottom:true});
+    if(sec.note) body += xpara(sec.note, {italic:true, size:18, color:MUTED, after:90});
+    sec.items.forEach(item => {
+      const d = state.checklist[item.id] || {};
+      if(item.type === 'text2'){
+        const vals = (item.fields||[]).map(f => f.label + ': ' + (d[f.key] || '—')).join('   ');
+        body += xpara([{text:'•  '+item.label+'  —  ', size:20, color:INK},{text: vals, size:20, color:MUTED}], {after:100});
+      } else {
+        const val = describeAnswer(item, d);
+        const valColor = val==='Так' ? GREEN : (val==='Ні' ? RED : MUTED);
+        body += xpara([{text:'•  '+item.label+'  —  ', size:20, color:INK},{text: val, bold:true, size:20, color:valColor}], {after: (d.comment || (item.fields && item.fields.some(f=>d[f.key])) ) ? 20 : 100});
+        if(d.comment) body += xpara('Коментар: ' + d.comment, {italic:true, size:18, color:MUTED, indent:260, after:80});
+        if(item.fields){
+          const extra = item.fields.map(f => f.label + ': ' + (d[f.key] || '—')).join('   ');
+          if(item.fields.some(f=>d[f.key])) body += xpara(extra, {italic:true, size:18, color:MUTED, indent:260, after:100});
+        }
+      }
+    });
+  });
+
+  const r = state.aiResult || fallbackAssessment();
+  body += xpara([{text:'07  ', bold:true, size:24, color:GOLD},{text:'Підсумкова оцінка', bold:true, size:24, color:INK}], {before:220, after:90, borderBottom:true});
+  body += xpara('Розраховано автоматично застосунком на основі відповідей вище.', {italic:true, size:18, color:MUTED, after:120});
+  body += xpara([{text:'Рівень впевненості: ', bold:true, size:22},{text:r.confidenceLevel, bold:true, size:22, color:GOLD}], {after:140});
+  body += xpara('Сильні сторони', {bold:true, size:20, underline:true, after:60});
+  body += xpara(r.strengths, {size:20, after:160});
+  body += xpara('Зони росту', {bold:true, size:20, underline:true, after:60});
+  body += xpara(r.growthAreas, {size:20, after:180});
+
+  body += xpara('Обговорення з ТП', {bold:true, size:24, color:INK, before:200, after:90, borderBottom:true});
+  body += xpara('Проговорити одразу після візиту.', {italic:true, size:18, color:MUTED, after:100});
+  body += xpara([{text:'З чого почати: ', bold:true, size:20},{text: r.openingSuggestion||'—', size:20}], {after:120});
+  body += xpara('Питання для обговорення:', {bold:true, size:20, after:70});
+  (r.discussionQuestions||[]).forEach(q => { body += xpara('—  ' + q, {size:20, after:60}); });
+
+  body += xEmpty();
+  body += xpara([{text:'ТП: ______________________     Дата: __________', size:20}], {before:200, after:80});
+  body += xpara([{text:'Керівник: ______________________     Дата: __________', size:20}]);
+
+  return body;
+}
+
+function buildDocumentXml(bodyXml){
+  return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+    '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">' +
+    '<w:body>' + bodyXml +
+    '<w:sectPr><w:pgSz w:w="11906" w:h="16838"/>' +
+    '<w:pgMar w:top="1134" w:right="1134" w:bottom="1134" w:left="1134" w:header="708" w:footer="708" w:gutter="0"/>' +
+    '</w:sectPr></w:body></w:document>';
+}
+function contentTypesXml(){
+  return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+    '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' +
+    '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>' +
+    '<Default Extension="xml" ContentType="application/xml"/>' +
+    '<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>' +
+    '<Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/>' +
+    '<Override PartName="/docProps/app.xml" ContentType="application/vnd.openxmlformats-officedocument.extended-properties+xml"/>' +
+    '</Types>';
+}
+function relsXml(){
+  return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+    '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+    '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>' +
+    '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/>' +
+    '<Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties" Target="docProps/app.xml"/>' +
+    '</Relationships>';
+}
+function coreXml(title){
+  const now = new Date().toISOString();
+  return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+    '<cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" ' +
+    'xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">' +
+    '<dc:title>' + escXml(title) + '</dc:title><dc:creator>Лист оцінки ТП</dc:creator>' +
+    '<dcterms:created xsi:type="dcterms:W3CDTF">' + now + '</dcterms:created>' +
+    '<dcterms:modified xsi:type="dcterms:W3CDTF">' + now + '</dcterms:modified>' +
+    '</cp:coreProperties>';
+}
+function appXml(){
+  return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+    '<Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties">' +
+    '<Application>TP Evaluation App</Application></Properties>';
+}
+
+async function downloadDocx(){
+  const documentXml = buildDocumentXml(buildDocxBody());
+  const zip = new JSZip();
+  zip.file('[Content_Types].xml', contentTypesXml());
+  zip.folder('_rels').file('.rels', relsXml());
+  zip.folder('docProps').file('core.xml', coreXml('Лист оцінки ТП'));
+  zip.folder('docProps').file('app.xml', appXml());
+  zip.folder('word').file('document.xml', documentXml);
+  const blob = await zip.generateAsync({ type:'blob', mimeType:'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+  const nameSafe = (state.info.tpName || 'ТП').replace(/[\\/:*?"<>|]/g,'').trim().replace(/\s+/g,'_');
+  const dateSafe = state.info.visitDate || new Date().toISOString().slice(0,10);
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'Лист_оцінки_ТП_' + nameSafe + '_' + dateSafe + '.docx';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
+
+/* =========================================================
+   RESET
+   ========================================================= */
+function resetApp(){
+  state.info = { tpName:'', managerName:'', pointName:'', visitDate:'', timeFrom:'', timeTo:'', format:'', status:'' };
+  state.checklist = {};
+  SECTIONS.forEach(sec => sec.items.forEach(item => { state.checklist[item.id] = { answer:'', comment:'' }; }));
+  state.aiResult = null;
+  state.sheetStatus = 'idle';
+  document.querySelectorAll('#screen-info input').forEach(el => el.value = '');
+  document.querySelectorAll('#screen-info .chip').forEach(el => el.classList.remove('active'));
+  document.getElementById('btn-continue').disabled = true;
+  document.getElementById('info-progress-note').textContent = '0/7 заповнено';
+  showScreen('info');
+}
+
+/* =========================================================
+   INIT
+   ========================================================= */
+renderStepper();
+showScreen('info');
+</script>
+</body>
+</html>
