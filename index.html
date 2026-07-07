@@ -140,7 +140,16 @@ p.screen-sub{color:var(--ink-500);font-size:14px;margin:0 0 22px;line-height:1.5
 .progress-note{font-family:var(--font-mono);font-size:12px;color:var(--ink-500);}
 
 /* ---------- checklist ---------- */
+.nz-note{background:#F1EFE7;border:1px solid var(--line);border-radius:var(--radius-sm);padding:11px 14px;font-size:12.5px;color:var(--ink-700);line-height:1.5;margin-bottom:18px;}
+.nz-note strong{color:var(--ink-900);}
 .progress-track{height:6px;border-radius:99px;background:var(--paper-100);overflow:hidden;margin-bottom:24px;}
+.section-score-row{display:flex;align-items:center;gap:10px;margin:14px 0 0;padding-top:14px;border-top:1px dashed var(--line);}
+.section-score-track{flex:1;height:5px;border-radius:99px;background:var(--paper-100);overflow:hidden;}
+.section-score-fill{height:100%;border-radius:99px;transition:width .3s ease, background .3s ease;background:var(--ink-500);}
+.section-score-label{font-family:var(--font-mono);font-size:11.5px;color:var(--ink-500);white-space:nowrap;min-width:118px;text-align:right;}
+.comment-hint{display:none;font-size:12px;color:var(--danger);margin-top:5px;font-weight:600;}
+.comment-hint.show{display:block;}
+.item-comment.comment-required{border-color:var(--danger);background:#FDF3F0;}
 .progress-fill{height:100%;background:linear-gradient(90deg,var(--accent-gold),var(--accent-teal));border-radius:99px;transition:width .3s ease;}
 
 .section-block{margin-bottom:30px;}
@@ -206,6 +215,10 @@ p.screen-sub{color:var(--ink-500);font-size:14px;margin:0 0 22px;line-height:1.5
 .result-card p{margin:0;font-size:14px;line-height:1.55;color:var(--ink-900);}
 .result-card.strengths h3{color:var(--accent-teal);}
 .result-card.growth h3{color:var(--accent-gold-dark);}
+.res-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;}
+.res-list li{font-size:14px;line-height:1.5;color:var(--ink-900);padding-left:16px;position:relative;}
+.res-list li::before{content:'—';position:absolute;left:0;color:var(--ink-500);}
+.overall-score-note{font-family:var(--font-mono);font-size:12px;color:var(--ink-500);text-align:center;margin-top:2px;}
 
 .qcard{background:#FBF9F4;border:1px solid var(--line);border-radius:var(--radius-sm);padding:18px 20px;margin-bottom:16px;}
 .qcard h3{font-family:var(--font-display);font-size:15px;margin:0 0 10px;}
@@ -281,12 +294,11 @@ p.screen-sub{color:var(--ink-500);font-size:14px;margin:0 0 22px;line-height:1.5
 
       <div class="field">
         <label>Дата і час<span class="required-star">*</span></label>
-        <div class="row3">
+        <div class="row2">
           <input type="date" id="in_visitDate" oninput="setInfo('visitDate', this.value)">
           <input type="time" id="in_timeFrom" oninput="setInfo('timeFrom', this.value)">
-          <input type="time" id="in_timeTo" oninput="setInfo('timeTo', this.value)">
         </div>
-        <div class="hint">Дата · час початку (обов'язково) · час завершення (можна вказати пізніше)</div>
+        <div class="hint">Дата та час початку візиту</div>
       </div>
 
       <div class="field">
@@ -318,6 +330,7 @@ p.screen-sub{color:var(--ink-500);font-size:14px;margin:0 0 22px;line-height:1.5
     <div class="card">
       <h2 class="screen-title">Чек-лист візиту</h2>
       <p class="screen-sub">Розділи 1–5 заповнюйте по ходу візиту, розділ 6 — одразу після завершення.</p>
+      <div class="nz-note"><strong>«Н/З» (не застосовується)</strong> — обирайте, якщо відповідна ситуація просто не виникла під час цього візиту. Такі пункти не впливають на оцінку блоку.</div>
       <div class="progress-track"><div class="progress-fill" id="checklist-progress-fill" style="width:0%"></div></div>
       <div id="sections-container"></div>
       <div class="actions-bar">
@@ -343,11 +356,11 @@ p.screen-sub{color:var(--ink-500);font-size:14px;margin:0 0 22px;line-height:1.5
       <div class="gauge-wrap" id="gauge-container"></div>
       <div class="result-card strengths">
         <h3>✓ Сильні сторони</h3>
-        <p id="res-strengths"></p>
+        <ul class="res-list" id="res-strengths"></ul>
       </div>
       <div class="result-card growth">
         <h3>↗ Зони росту</h3>
-        <p id="res-growth"></p>
+        <ul class="res-list" id="res-growth"></ul>
       </div>
 
       <div class="sync-row">
@@ -401,8 +414,7 @@ p.screen-sub{color:var(--ink-500);font-size:14px;margin:0 0 22px;line-height:1.5
    налаштувань з боку КН/наставника.
    ========================================================= */
 const CONFIG = {
-  GAS_URL: 'https://script.google.com/macros/s/AKfycbzfnBJBGLqKcPx8rfChfdn756vriq5up_1SsFK-lrI2hvjnfslCCrsps8Kux-Lj9rnfTw/exec', // <-- ВСТАВТЕ URL ДЕПЛОЮ APPS SCRIPT (".../exec")
-  ANTHROPIC_MODEL: 'claude-sonnet-4-6'
+  GAS_URL: 'https://script.google.com/macros/s/AKfycbzfnBJBGLqKcPx8rfChfdn756vriq5up_1SsFK-lrI2hvjnfslCCrsps8Kux-Lj9rnfTw/exec' // <-- URL ДЕПЛОЮ APPS SCRIPT (".../exec")
 };
 
 /* =========================================================
@@ -411,40 +423,131 @@ const CONFIG = {
    ========================================================= */
 const SECTIONS = [
   { num:'01', title:"Вхід і контакт", phase:"Під час візиту", items:[
-    { id:'s1_purpose', label:"Озвучив мету візиту на початку", type:'yn3' },
-    { id:'s1_name', label:"Знає ім'я співрозмовника / пам'ятає попередні домовленості", type:'yn3' },
+    { id:'s1_purpose', label:"Озвучив мету візиту на початку", type:'yn3', weight:50,
+      topic:"мети візиту на початку розмови",
+      growthNote:"Не озвучив мету візиту на самому початку розмови",
+      question:"Чому не вийшло одразу сказати клієнту, навіщо ти прийшов? Як зробити це коротко на початку наступного разу?",
+      strengthQuestion:"Що саме допомогло тобі так впевнено звучати, коли озвучував мету візиту?" },
+    { id:'s1_name', label:"Знає ім'я співрозмовника / пам'ятає попередні домовленості", type:'yn3', weight:50,
+      topic:"того, як тримаєш контакт і пам'ятаєш домовленості",
+      growthNote:"Не показав, що пам'ятає ім'я співрозмовника чи попередні домовленості",
+      question:"Що допоможе тобі перед візитом швидко пригадати, з ким і про що вже домовлялись?",
+      strengthQuestion:"Як тобі вдалося одразу згадати ім'я клієнта й попередні домовленості — є якийсь лайфхак?" },
     { id:'s1_contact', label:"З ким говорили", type:'text2', fields:[{key:'name',label:"ПІБ"},{key:'position',label:"Посада"}] }
   ]},
   { num:'02', title:"Збір інформації про клієнта", items:[
-    { id:'s2_volume', label:"З'ясував обсяги споживання", type:'yn3' },
-    { id:'s2_supplier', label:"З'ясував поточного постачальника", type:'yn3' },
-    { id:'s2_packaging', label:"Уточнив наявність бочкової тари / фасовки", type:'yn3' },
-    { id:'s2_lpr', label:"Зафіксував контакти ЛПР (ПІБ, посада, телефон)", type:'yn3', fields:[{key:'lprName',label:"ПІБ ЛПР"}] },
-    { id:'s2_needs', label:"Виявив додаткові потреби (допродаж, нові позиції)", type:'yn3' }
+    { id:'s2_volume', label:"З'ясував обсяги споживання", type:'yn3', weight:25,
+      topic:"обсягів споживання клієнта",
+      growthNote:"Не з'ясував обсяги споживання клієнта",
+      question:"Як думаєш, які запитання спрацювали б краще, щоб дізнатись реальні обсяги клієнта?",
+      strengthQuestion:"Як тобі вдалося швидко з'ясувати реальні обсяги споживання клієнта?" },
+    { id:'s2_supplier', label:"З'ясував поточного постачальника", type:'yn3', weight:25,
+      topic:"поточного постачальника клієнта",
+      growthNote:"Не з'ясував, з яким постачальником зараз працює клієнт",
+      question:"Що завадило дізнатись, з ким клієнт зараз працює? Як підняти цю тему наступного разу, якщо розмову перебивають?",
+      strengthQuestion:"Як тобі вдалося розговорити клієнта про те, з ким він зараз працює?" },
+    { id:'s2_packaging', label:"Уточнив наявність бочкової тари / фасовки", type:'yn3', weight:15,
+      topic:"тари й фасовки",
+      growthNote:"Не уточнив наявність бочкової тари / фасовки у клієнта",
+      question:"Наскільки взагалі критично питання тари для цього клієнта? Коли варто його піднімати?",
+      strengthQuestion:"Як вийшло природно підняти тему тари й фасовки в розмові?" },
+    { id:'s2_lpr', label:"Зафіксував контакти ЛПР (ПІБ, посада, телефон)", type:'yn3', weight:20,
+      topic:"контактів особи, яка приймає рішення",
+      growthNote:"Не зафіксував контакти особи, яка приймає рішення (ЛПР)",
+      question:"Якщо співрозмовник — не той, хто вирішує, як зрозуміти, хто насправді приймає рішення?",
+      strengthQuestion:"Як тобі вдалося вийти на контакти людини, яка приймає рішення?" },
+    { id:'s2_needs', label:"Виявив додаткові потреби (допродаж, нові позиції)", type:'yn3', weight:15,
+      topic:"додаткових потреб клієнта",
+      growthNote:"Не виявив додаткові потреби клієнта (допродаж, нові позиції)",
+      question:"Які запитання допоможуть побачити, чого клієнту ще бракує, крім основного замовлення?",
+      strengthQuestion:"Як ти помітив ці додаткові потреби клієнта?" }
   ]},
   { num:'03', title:"Впевненість і заперечення", note:"Відмічайте, коли ситуація дійсно виникла під час розмови.", items:[
-    { id:'s3_calm', label:"Спокійно реагує на відмову / різкість клієнта", type:'yn3' },
-    { id:'s3_tech', label:"Впевнено відповідає на технічні питання (допуски мастил, специфікації)", type:'yn3' },
-    { id:'s3_honest', label:"Якщо не знає відповіді — чесно каже «уточню», а не вигадує", type:'yn3' },
-    { id:'s3_price', label:"Працює з ціновими запереченнями аргументами, а не знижкою", type:'yn3' },
-    { id:'s3_compare', label:"Впевнено порівнює з конкурентами (Bardahl, Motul тощо)", type:'yn3' }
+    { id:'s3_calm', label:"Спокійно реагує на відмову / різкість клієнта", type:'yn3', weight:20,
+      topic:"реакції на відмову чи різкість клієнта",
+      growthNote:"Втрачав спокій при відмові чи різкості клієнта",
+      question:"Що саме вибило з рівноваги цього разу? Яка фраза могла б виручити в такій ситуації?",
+      strengthQuestion:"Як тобі вдалося зберегти спокій, коли клієнт був різким?" },
+    { id:'s3_tech', label:"Впевнено відповідає на технічні питання (допуски мастил, специфікації)", type:'yn3', weight:25,
+      topic:"технічних питань про мастила",
+      growthNote:"Невпевнено відповідав на технічні питання про мастила",
+      question:"Які технічні питання зависли без відповіді? Що варто підтягнути перед наступним візитом?",
+      strengthQuestion:"Звідки така впевненість у технічних деталях — готувався заздалегідь?" },
+    { id:'s3_honest', label:"Якщо не знає відповіді — чесно каже «уточню», а не вигадує", type:'yn3', weight:15,
+      topic:"чесності у відповідях, коли чогось не знаєш",
+      growthNote:"Намагався відповісти навмання замість чесного «уточню»",
+      question:"Коли було важко сказати «зараз уточню»? Як швидко повернутись із відповіддю до клієнта?",
+      strengthQuestion:"Як тобі було комфортно чесно сказати «уточню», а не вигадувати на ходу?" },
+    { id:'s3_price', label:"Працює з ціновими запереченнями аргументами, а не знижкою", type:'yn3', weight:25,
+      topic:"роботи з ціновими запереченнями",
+      growthNote:"Реагував на цінові заперечення знижкою, а не аргументами",
+      question:"Яку ще аргументацію, крім знижки, можна підготувати для цього клієнта?",
+      strengthQuestion:"Яка аргументація спрацювала проти цінових заперечень замість знижки?" },
+    { id:'s3_compare', label:"Впевнено порівнює з конкурентами (Bardahl, Motul тощо)", type:'yn3', weight:15,
+      topic:"порівняння з конкурентами",
+      growthNote:"Невпевнено порівнював продукт із конкурентами (Bardahl, Motul тощо)",
+      question:"Яких аргументів порівняння з конкурентами не вистачило під час розмови?",
+      strengthQuestion:"Що допомогло тобі впевнено порівняти продукт із конкурентами?" }
   ]},
   { num:'04', title:"Робота з ЛПР", items:[
-    { id:'s4_influence', label:"Розуміє, чи впливає співрозмовник на рішення", type:'yn3' },
-    { id:'s4_others', label:"Питає про інших причетних до рішення", type:'yn3' },
-    { id:'s4_adapt', label:"Адаптує аргументи під роль співрозмовника", type:'yn3' }
+    { id:'s4_influence', label:"Розуміє, чи впливає співрозмовник на рішення", type:'yn3', weight:40,
+      topic:"ролі співрозмовника в прийнятті рішення",
+      growthNote:"Не з'ясував, чи впливає співрозмовник на остаточне рішення",
+      question:"Як делікатно зрозуміти, чи впливає співрозмовник на рішення?",
+      strengthQuestion:"Як ти зрозумів, що співрозмовник дійсно впливає на рішення?" },
+    { id:'s4_others', label:"Питає про інших причетних до рішення", type:'yn3', weight:25,
+      topic:"інших причетних до рішення",
+      growthNote:"Не запитав про інших причетних до рішення",
+      question:"Яке запитання допоможе дізнатись, хто ще причетний до рішення?",
+      strengthQuestion:"Як вдалося природно запитати про інших причетних до рішення?" },
+    { id:'s4_adapt', label:"Адаптує аргументи під роль співрозмовника", type:'yn3', weight:35,
+      topic:"адаптації аргументів під співрозмовника",
+      growthNote:"Не адаптував аргументи під роль співрозмовника",
+      question:"Чим аргументи для цього співрозмовника мали б відрізнятись, скажімо, від розмови з власником СТО?",
+      strengthQuestion:"Як ти підлаштував аргументи саме під цього співрозмовника?" }
   ]},
   { num:'05', title:"Завершення візиту", items:[
-    { id:'s5_summary', label:"Підсумував домовленості вголос", type:'yn3' },
-    { id:'s5_nextstep', label:"Є конкретний next step: дата + відповідальний", type:'yn3', fields:[{key:'when',label:"Дата/час"},{key:'who',label:"Хто відповідальний"}] }
+    { id:'s5_summary', label:"Підсумував домовленості вголос", type:'yn3', weight:40,
+      topic:"підсумку домовленостей наприкінці",
+      growthNote:"Не підсумував домовленості вголос наприкінці візиту",
+      question:"Як коротко підсумувати домовленості вголос, щоб і ти, і клієнт пам'ятали одне й те саме?",
+      strengthQuestion:"Як тобі вдалося чітко підсумувати домовленості наприкінці розмови?" },
+    { id:'s5_nextstep', label:"Є конкретний next step: дата + відповідальний", type:'yn3', weight:60,
+      fields:[{key:'when',label:"Дата/час"},{key:'who',label:"Хто відповідальний"}],
+      topic:"конкретного наступного кроку",
+      growthNote:"Не зафіксував конкретний next step (дату і відповідального)",
+      question:"Який конкретний наступний крок і дедлайн варто було зафіксувати перед тим, як піти?",
+      strengthQuestion:"Як тобі вдалося одразу зафіксувати конкретний наступний крок і дедлайн?" }
   ]},
   { num:'06', title:"Динаміка розмови", phase:"Після завершення візиту", note:"Ці пункти реально оцінити лише подивившись на візит в цілому.", items:[
-    { id:'s6_focus', label:"Розмова була більше про клієнта, ніж про продукт", type:'yn3' },
-    { id:'s6_who_talked', label:"Хто говорив більше", type:'select', options:['ТП','Клієнт','Порівну'] },
+    { id:'s6_focus', label:"Розмова була більше про клієнта, ніж про продукт", type:'yn3', weight:30,
+      topic:"фокусу розмови на клієнті, а не на продукті",
+      growthNote:"Розмова була більше про продукт, ніж про клієнта",
+      question:"Які запитання про бізнес клієнта зробили б розмову менш «про продукт» і більш про нього самого?",
+      strengthQuestion:"Як тобі вдалося тримати розмову навколо клієнта, а не навколо продукту?" },
+    { id:'s6_who_talked', label:"Хто говорив більше", type:'select', options:['ТП','Клієнт','Порівну'], weight:20,
+      topic:"того, хто більше говорив у розмові",
+      scoreMap:{'ТП':0,'Порівну':60,'Клієнт':100},
+      strengthMap:{'Клієнт':"Розмову більшою мірою вів клієнт, а не ТП"},
+      growthMap:{'ТП':"Більшу частину розмови говорив ТП, а не клієнт"},
+      question:"Які відкриті запитання дали б клієнту більше простору говорити?",
+      strengthQuestion:"Як тобі вдалося розговорити клієнта, щоб він говорив більше за тебе?" },
     { id:'s6_duration', label:"Тривалість візиту", type:'number', unit:'хв' },
     { id:'s6_interrupts', label:"Скільки разів ТП перебив клієнта", type:'number', unit:'разів' },
-    { id:'s6_tension', label:"Була напруга/конфлікт", type:'yn2', fields:[{key:'resolution',label:"Як вийшов з ситуації"}] },
-    { id:'s6_result', label:"Результат візиту", type:'select', options:['Залишається в ПКБ','Переведено в АКБ','Потрібен повторний візит'] }
+    { id:'s6_tension', label:"Була напруга/конфлікт", type:'yn2', weight:20, invert:true,
+      fields:[{key:'resolution',label:"Як вийшов з ситуації"}],
+      topic:"атмосфери розмови",
+      strengthNote:"Зберіг спокій — напруги чи конфлікту під час візиту не виникло",
+      growthNote:"Під час візиту виникла напруга або конфлікт",
+      question:"Що там сталося і як вдалося (чи не вдалося) вийти з напруженої ситуації?",
+      strengthQuestion:"Як тобі вдалося втримати спокійну атмосферу протягом усього візиту?" },
+    { id:'s6_result', label:"Результат візиту", type:'select', options:['Залишається в ПКБ','Переведено в АКБ','Потрібен повторний візит'], weight:30,
+      topic:"результату візиту",
+      scoreMap:{'Потрібен повторний візит':30,'Залишається в ПКБ':60,'Переведено в АКБ':100},
+      strengthMap:{'Переведено в АКБ':"Точку переведено в АКБ за результатами візиту"},
+      growthMap:{'Потрібен повторний візит':"Візит завершився без прогресу — потрібен повторний візит"},
+      question:"Що варто підготувати чи з'ясувати до повторного візиту?",
+      strengthQuestion:"Що зіграло вирішальну роль у тому, щоб перевести точку в АКБ?" }
   ]}
 ];
 const LEVELS = ['Низький','Середній','Високий','Готовий до самостійної роботи'];
@@ -454,7 +557,7 @@ const LEVELS = ['Низький','Середній','Високий','Готов
    ========================================================= */
 let state = {
   screen: 'info',
-  info: { tpName:'', managerName:'', pointName:'', visitDate:'', timeFrom:'', timeTo:'', format:'', status:'' },
+  info: { tpName:'', managerName:'', pointName:'', visitDate:'', timeFrom:'', format:'', status:'' },
   checklist: {},
   aiResult: null,
   sheetStatus: 'idle',
@@ -515,9 +618,24 @@ function goToChecklist(){
    SCREEN 2 — CHECKLIST
    ========================================================= */
 function isItemRequired(item){ return item.type !== 'text2'; }
+function isNegativeAnswer(item, answer){
+  if(item.type !== 'yn3' && item.type !== 'yn2') return false;
+  return item.invert ? answer === 'Так' : answer === 'Ні';
+}
+function needsComment(item, data){
+  return isNegativeAnswer(item, data.answer) && !(data.comment && data.comment.trim());
+}
+function findItemById(id){
+  for(const sec of SECTIONS){
+    for(const item of sec.items){ if(item.id === id) return item; }
+  }
+  return null;
+}
 function isItemAnswered(item, data){
   if(item.type === 'number') return data.answer !== '' && data.answer !== undefined && data.answer !== null;
-  return !!data.answer;
+  if(!data.answer) return false;
+  if(needsComment(item, data)) return false;
+  return true;
 }
 
 function renderChecklist(){
@@ -527,10 +645,12 @@ function renderChecklist(){
     html += '<div class="section-head"><span class="section-num">' + sec.num + '</span><span class="section-title">' + sec.title + '</span>' + (sec.phase ? '<span class="section-phase">' + sec.phase + '</span>' : '') + '</div>';
     if(sec.note) html += '<div class="section-note">' + sec.note + '</div>';
     sec.items.forEach(item => { html += renderItem(item); });
+    html += '<div class="section-score-row"><div class="section-score-track"><div class="section-score-fill" id="scorefill_' + sec.num + '" style="width:0%"></div></div><span class="section-score-label" id="scoretext_' + sec.num + '">Оцінка блоку: —</span></div>';
     html += '</div>';
   });
   document.getElementById('sections-container').innerHTML = html;
   updateChecklistProgress();
+  updateAllSectionScores();
 }
 
 function renderItem(item){
@@ -540,7 +660,9 @@ function renderItem(item){
     inner += '<div class="answer-row" id="ans_' + item.id + '">';
     opts.forEach(o => { inner += '<button type="button" class="ans-btn" data-v="' + o + '" onclick="setAnswer(\'' + item.id + '\',\'' + o + '\',this)">' + o + '</button>'; });
     inner += '</div>';
-    inner += '<textarea class="item-comment" placeholder="Коментар (необов\'язково)" oninput="setComment(\'' + item.id + '\', this.value)"></textarea>';
+    inner += '<textarea class="item-comment" id="comment_' + item.id + '" placeholder="Коментар (необов\'язково)" oninput="setComment(\'' + item.id + '\', this.value)"></textarea>';
+    const negLabel = item.invert ? 'Так' : 'Ні';
+    inner += '<div class="comment-hint" id="comment_hint_' + item.id + '">⚠ Коментар обов\'язковий, якщо відповідь «' + negLabel + '»</div>';
   } else if(item.type === 'select'){
     inner += '<div class="answer-row" id="ans_' + item.id + '">';
     item.options.forEach(o => { inner += '<button type="button" class="ans-btn opt" data-v="' + o + '" onclick="setAnswer(\'' + item.id + '\',\'' + o + '\',this)">' + o + '</button>'; });
@@ -567,10 +689,29 @@ function setAnswer(itemId, value, btnEl){
     group.querySelectorAll('.ans-btn').forEach(b => b.classList.remove('active'));
     btnEl.classList.add('active');
   }
+  refreshCommentRequirement(itemId);
+  updateChecklistProgress();
+  updateAllSectionScores();
+}
+function setComment(itemId, value){
+  state.checklist[itemId].comment = value;
+  refreshCommentRequirement(itemId);
   updateChecklistProgress();
 }
-function setComment(itemId, value){ state.checklist[itemId].comment = value; }
 function setExtra(itemId, key, value){ state.checklist[itemId][key] = value; }
+
+function refreshCommentRequirement(itemId){
+  const data = state.checklist[itemId];
+  const item = findItemById(itemId);
+  const textarea = document.getElementById('comment_' + itemId);
+  const hint = document.getElementById('comment_hint_' + itemId);
+  if(!textarea || !hint || !item) return;
+  const isNegative = isNegativeAnswer(item, data.answer);
+  const requires = isNegative && !(data.comment && data.comment.trim());
+  textarea.classList.toggle('comment-required', requires);
+  hint.classList.toggle('show', requires);
+  textarea.placeholder = isNegative ? "Коментар обов'язковий — опишіть, що саме пішло не так" : "Коментар (необов'язково)";
+}
 
 function updateChecklistProgress(){
   let total = 0, done = 0;
@@ -586,11 +727,52 @@ function updateChecklistProgress(){
 }
 
 /* =========================================================
+   PER-SECTION WEIGHTED SCORE (0-100, Н/З excluded)
+   ========================================================= */
+function yn3Value(item, answer){
+  if(answer === 'Так') return item.invert ? 0 : 100;
+  if(answer === 'Ні') return item.invert ? 100 : 0;
+  return null; // Н/З or unanswered
+}
+function itemScoreValue(item, data){
+  if(item.weight == null) return null;
+  if(item.type === 'yn3' || item.type === 'yn2') return yn3Value(item, data.answer);
+  if(item.type === 'select' && item.scoreMap) return (data.answer && item.scoreMap[data.answer] != null) ? item.scoreMap[data.answer] : null;
+  return null;
+}
+function computeSectionScore(sec){
+  let sum = 0, weightTotal = 0;
+  sec.items.forEach(item => {
+    if(item.weight == null) return;
+    const val = itemScoreValue(item, state.checklist[item.id] || {});
+    if(val != null){ sum += val * item.weight; weightTotal += item.weight; }
+  });
+  return weightTotal > 0 ? Math.round(sum / weightTotal) : null;
+}
+function scoreColor(pct){
+  if(pct == null) return 'var(--ink-500)';
+  if(pct >= 70) return 'var(--accent-teal)';
+  if(pct >= 40) return 'var(--accent-gold)';
+  return 'var(--danger)';
+}
+function updateAllSectionScores(){
+  SECTIONS.forEach(sec => {
+    const pct = computeSectionScore(sec);
+    const fill = document.getElementById('scorefill_' + sec.num);
+    const label = document.getElementById('scoretext_' + sec.num);
+    if(!fill || !label) return;
+    fill.style.width = (pct == null ? 0 : pct) + '%';
+    fill.style.background = scoreColor(pct);
+    label.textContent = 'Оцінка блоку: ' + (pct == null ? '—' : pct + '%');
+  });
+}
+
+/* =========================================================
    FORMATTING HELPERS
    ========================================================= */
 function formatDateTime(info){
   let d = info.visitDate ? info.visitDate.split('-').reverse().join('.') : '—';
-  let t = info.timeFrom ? (' , з ' + info.timeFrom + (info.timeTo ? ' до ' + info.timeTo : '')) : '';
+  let t = info.timeFrom ? (', ' + info.timeFrom) : '';
   return d + t;
 }
 function describeAnswer(item, data){
@@ -599,111 +781,110 @@ function describeAnswer(item, data){
 }
 
 /* =========================================================
-   AI CALL
+   ЛОКАЛЬНИЙ ГЕНЕРАТОР ПІДСУМКОВОЇ ОЦІНКИ
+   ---------------------------------------------------------
+   Працює повністю на пристрої, без звернень до зовнішніх
+   сервісів: рівень впевненості, сильні сторони, зони росту
+   й питання для обговорення виводяться напряму з відповідей
+   і коментарів чек-листа за детермінованими правилами.
    ========================================================= */
-function buildPrompt(){
-  const info = state.info;
-  let lines = [];
-  lines.push("Ти — досвідчений керівник відділу продажів мастил і автохімії, який допомагає керівнику напрямку (КН) підготувати якісний зворотній зв'язок торговому представнику (ТП) після оцінки його візиту до клієнта (СТО). Мета програми компанії — просувати клієнтів зі статусу ПКБ (потенційна клієнтська база) в АКБ (активна клієнтська база).");
-  lines.push('');
-  lines.push('Дані візиту:');
-  lines.push('- Кого оцінюють (ТП): ' + (info.tpName || '—'));
-  lines.push('- Хто оцінює: ' + (info.managerName || '—'));
-  lines.push('- Точка/СТО: ' + (info.pointName || '—'));
-  lines.push('- Дата і час: ' + formatDateTime(info));
-  lines.push('- Формат візиту: ' + (info.format || '—'));
-  lines.push('- Статус точки: ' + (info.status || '—'));
-  lines.push('');
-  lines.push('Результати чек-листа по розділах:');
+function computeAllSectionScores(){
+  const scores = {};
+  SECTIONS.forEach(sec => { scores[sec.num] = computeSectionScore(sec); });
+  return scores;
+}
+
+function overallLevelFromScores(scores){
+  const vals = Object.values(scores).filter(v => v != null);
+  const overall = vals.length ? Math.round(vals.reduce((a,b) => a+b, 0) / vals.length) : 0;
+  let level;
+  if(overall >= 90) level = 'Готовий до самостійної роботи';
+  else if(overall >= 70) level = 'Високий';
+  else if(overall >= 40) level = 'Середній';
+  else level = 'Низький';
+  return { overall, level };
+}
+
+function generateAssessment(){
+  const scores = computeAllSectionScores();
+  const { overall, level } = overallLevelFromScores(scores);
+
+  let strengthEntries = [];
+  let growthEntries = [];
+
   SECTIONS.forEach(sec => {
-    lines.push(sec.num + '. ' + sec.title + ':');
     sec.items.forEach(item => {
       const d = state.checklist[item.id] || {};
-      if(item.type === 'text2'){
-        const vals = (item.fields||[]).map(f => f.label + ': ' + (d[f.key] || '—')).join(', ');
-        lines.push('  - ' + item.label + ' — ' + vals);
-      } else {
-        const val = describeAnswer(item, d);
-        const extra = (item.fields||[]).map(f => f.label + ': ' + (d[f.key] || '—')).join('; ');
-        lines.push('  - ' + item.label + ': ' + val + (d.comment ? ' (Коментар: ' + d.comment + ')' : '') + (extra ? ' [' + extra + ']' : ''));
+      if(item.weight == null) return;
+
+      if(item.type === 'yn3' || item.type === 'yn2'){
+        const positive = item.invert ? (d.answer === 'Ні') : (d.answer === 'Так');
+        const negative = item.invert ? (d.answer === 'Так') : (d.answer === 'Ні');
+        if(positive){
+          const text = (item.strengthNote || item.label) + (d.comment ? ' — ' + d.comment : '');
+          strengthEntries.push({ weight:item.weight, hasComment:!!d.comment, text, topic:item.topic, question:item.strengthQuestion });
+        } else if(negative){
+          const text = (item.growthNote || item.label) + (d.comment ? ' — ' + d.comment : '');
+          growthEntries.push({ weight:item.weight, hasComment:!!d.comment, text, topic:item.topic, question:item.question });
+        }
+      } else if(item.type === 'select'){
+        if(item.strengthMap && item.strengthMap[d.answer]){
+          strengthEntries.push({ weight:item.weight, hasComment:false, text:item.strengthMap[d.answer], topic:item.topic, question:item.strengthQuestion });
+        }
+        if(item.growthMap && item.growthMap[d.answer]){
+          growthEntries.push({ weight:item.weight, hasComment:false, text:item.growthMap[d.answer], topic:item.topic, question:item.question });
+        }
       }
     });
   });
-  lines.push('');
-  lines.push('Заповни підсумкову оцінку та підготуй запитання для обговорення з ТП. Поверни ВИКЛЮЧНО валідний JSON без жодного додаткового тексту, пояснень чи markdown-розмітки, у такому форматі:');
-  lines.push('{"confidenceLevel":"Низький або Середній або Високий або Готовий до самостійної роботи","strengths":"2-4 речення українською, конкретно про цей візит","growthAreas":"2-4 речення українською, конкретно і по-діловому, без образливих формулювань","openingSuggestion":"1 речення — з чого краще почати розмову з ТП","discussionQuestions":["4-6 конкретних відкритих запитань для обговорення з ТП, українською"]}');
-  return lines.join('\n');
-}
 
-function normalizeAIResult(parsed){
-  let level = LEVELS.includes(parsed.confidenceLevel) ? parsed.confidenceLevel : 'Середній';
-  return {
-    confidenceLevel: level,
-    strengths: parsed.strengths || '—',
-    growthAreas: parsed.growthAreas || '—',
-    openingSuggestion: parsed.openingSuggestion || '',
-    discussionQuestions: Array.isArray(parsed.discussionQuestions) ? parsed.discussionQuestions.slice(0,6) : []
-  };
-}
+  strengthEntries.sort((a,b) => (b.hasComment - a.hasComment) || (b.weight - a.weight));
+  growthEntries.sort((a,b) => (b.hasComment - a.hasComment) || (b.weight - a.weight));
 
-function fallbackAssessment(){
-  let yes=0, no=0, total=0;
-  SECTIONS.forEach(sec => sec.items.forEach(item => {
-    if(item.type === 'yn3' || item.type === 'yn2'){
-      const d = state.checklist[item.id] || {};
-      if(d.answer === 'Так') yes++;
-      if(d.answer === 'Ні') no++;
-      if(d.answer) total++;
-    }
-  }));
-  const ratio = total ? yes/total : 0;
-  let level = 'Середній';
-  if(ratio >= 0.9) level = 'Готовий до самостійної роботи';
-  else if(ratio >= 0.7) level = 'Високий';
-  else if(ratio >= 0.4) level = 'Середній';
-  else level = 'Низький';
-  return {
-    confidenceLevel: level,
-    strengths: 'Автоматичний аналіз ШІ тимчасово недоступний. За попереднім підрахунком ' + yes + ' із ' + total + ' пунктів позначено «Так» — це можна вважати орієнтовним рівнем впевненості ТП під час візиту.',
-    growthAreas: 'Перегляньте пункти чек-листа, позначені «Ні», та коментарі до них — саме там варто шукати конкретні зони для розвитку ТП.',
-    openingSuggestion: 'Почніть розмову з того, що вдалося найкраще, а тоді перейдіть до конкретних моментів для покращення.',
-    discussionQuestions: [
+  const topStrengths = strengthEntries.slice(0,5);
+  const topGrowth = growthEntries.slice(0,3); // максимум 3 зони росту
+
+  const strengths = topStrengths.length ? topStrengths.map(s => s.text) : ['Явних сильних сторін за відповідями цього візиту не зафіксовано — перегляньте чек-лист детальніше.'];
+  const growthAreas = topGrowth.length ? topGrowth.map(g => g.text) : ['Критичних зон росту за цим візитом не виявлено — тримайте темп і продовжуйте розвивати технічну експертизу.'];
+
+  let discussionQuestions = topGrowth.map(g => g.question).filter(Boolean);
+  if(discussionQuestions.length === 0){
+    discussionQuestions = [
       'Що, на твою думку, вдалося найкраще під час цього візиту?',
-      'Які моменти візиту були для тебе найскладнішими?',
-      'Що допомогло б тобі відчувати себе впевненіше наступного разу?',
-      'Який наступний крок ти плануєш зробити з цим клієнтом?'
-    ]
+      'Що б ти зробив по-іншому, якби повторював цей візит зараз?'
+    ];
+  }
+  if(topStrengths.length && topStrengths[0].question){
+    discussionQuestions.unshift(topStrengths[0].question);
+  }
+  discussionQuestions = discussionQuestions.slice(0,5);
+
+  let openingSuggestion;
+  if(topStrengths.length && topGrowth.length){
+    openingSuggestion = 'Почніть з того, що вдалося, — ' + (topStrengths[0].topic || 'сильних моментів візиту') + '. Потім перейдіть до ' + (topGrowth[0].topic || 'зон для покращення') + '.';
+  } else if(topStrengths.length){
+    openingSuggestion = 'Почніть із подяки за ' + (topStrengths[0].topic || 'вдалі моменти візиту') + ' — явних зон росту цього разу не виявлено.';
+  } else {
+    openingSuggestion = 'Почніть з відкритого запитання про те, як сам ТП оцінює цей візит.';
+  }
+
+  return {
+    confidenceLevel: level,
+    overallScore: overall,
+    sectionScores: scores,
+    strengths,
+    growthAreas,
+    openingSuggestion,
+    discussionQuestions
   };
 }
 
 async function finishEvaluation(){
   showScreen('processing');
-  const messages = ['Аналізуємо відповіді…','Формуємо підсумкову оцінку…','Готуємо запитання для обговорення…'];
-  let mi = 0;
-  document.getElementById('processing-msg').textContent = messages[0];
-  const msgTimer = setInterval(() => { mi = (mi+1) % messages.length; document.getElementById('processing-msg').textContent = messages[mi]; }, 1100);
-
-  try {
-    const resp = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: CONFIG.ANTHROPIC_MODEL,
-        max_tokens: 1000,
-        messages: [{ role: 'user', content: buildPrompt() }]
-      })
-    });
-    const data = await resp.json();
-    const textBlock = (data.content || []).find(b => b.type === 'text');
-    let raw = textBlock ? textBlock.text : '';
-    raw = raw.trim().replace(/^```json/i,'').replace(/^```/,'').replace(/```$/,'').trim();
-    const parsed = JSON.parse(raw);
-    state.aiResult = normalizeAIResult(parsed);
-  } catch(e){
-    console.error('AI assessment failed', e);
-    state.aiResult = fallbackAssessment();
-  }
-  clearInterval(msgTimer);
+  document.getElementById('processing-msg').textContent = 'Формуємо підсумкову оцінку…';
+  // Невелика штучна пауза для плавного переходу — сам розрахунок відбувається миттєво й локально.
+  await new Promise(r => setTimeout(r, 450));
+  state.aiResult = generateAssessment();
   renderResults();
   showScreen('results');
   submitToSheet();
@@ -748,9 +929,10 @@ function renderResults(){
   document.getElementById('gauge-container').innerHTML =
     renderGaugeSVG(levelIdx) +
     '<div class="gauge-level-sub">Рівень впевненості</div>' +
-    '<div class="gauge-level-label">' + r.confidenceLevel + '</div>';
-  document.getElementById('res-strengths').textContent = r.strengths;
-  document.getElementById('res-growth').textContent = r.growthAreas;
+    '<div class="gauge-level-label">' + r.confidenceLevel + '</div>' +
+    '<div class="overall-score-note">Середньозважений бал за чек-листом: ' + r.overallScore + '%</div>';
+  document.getElementById('res-strengths').innerHTML = r.strengths.map(s => '<li>' + s + '</li>').join('');
+  document.getElementById('res-growth').innerHTML = r.growthAreas.map(g => '<li>' + g + '</li>').join('');
   document.getElementById('res-opening').textContent = r.openingSuggestion || '—';
   let qhtml = '';
   (r.discussionQuestions || []).forEach((q,i) => {
@@ -794,6 +976,7 @@ async function submitToSheet(){
   const url = state.gasUrlOverride || CONFIG.GAS_URL;
   if(!url){ state.sheetStatus = 'nourl'; updateSyncUI(); return; }
   state.sheetStatus = 'sending'; updateSyncUI();
+  const sc = (state.aiResult && state.aiResult.sectionScores) || {};
   const payload = {
     timestamp: new Date().toISOString(),
     tpName: state.info.tpName,
@@ -803,8 +986,14 @@ async function submitToSheet(){
     format: state.info.format,
     status: state.info.status,
     confidenceLevel: state.aiResult ? state.aiResult.confidenceLevel : '',
-    strengths: state.aiResult ? state.aiResult.strengths : '',
-    growthAreas: state.aiResult ? state.aiResult.growthAreas : ''
+    strengths: state.aiResult ? state.aiResult.strengths.join(' | ') : '',
+    growthAreas: state.aiResult ? state.aiResult.growthAreas.join(' | ') : '',
+    score01: sc['01'] != null ? sc['01'] : '',
+    score02: sc['02'] != null ? sc['02'] : '',
+    score03: sc['03'] != null ? sc['03'] : '',
+    score04: sc['04'] != null ? sc['04'] : '',
+    score05: sc['05'] != null ? sc['05'] : '',
+    score06: sc['06'] != null ? sc['06'] : ''
   };
   try {
     await fetch(url, {
@@ -906,8 +1095,17 @@ function buildDocxBody(){
   body += infoLine('Статус точки', state.info.status);
   body += xEmpty();
 
+  const r = state.aiResult || generateAssessment();
+  const sc = r.sectionScores || computeAllSectionScores();
+
   SECTIONS.forEach(sec => {
-    body += xpara([{text: sec.num + '  ', bold:true, size:24, color:GOLD},{text: sec.title, bold:true, size:24, color:INK}], {before:220, after:90, borderBottom:true});
+    const v = sc[sec.num];
+    const scoreColor2 = v == null ? MUTED : (v >= 70 ? GREEN : (v >= 40 ? GOLD : RED));
+    body += xpara([
+      {text: sec.num + '  ', bold:true, size:24, color:GOLD},
+      {text: sec.title, bold:true, size:24, color:INK},
+      {text: '   —   Оцінка блоку: ' + (v == null ? '—' : v + '%'), bold:true, size:20, color:scoreColor2}
+    ], {before:220, after:90, borderBottom:true});
     if(sec.note) body += xpara(sec.note, {italic:true, size:18, color:MUTED, after:90});
     sec.items.forEach(item => {
       const d = state.checklist[item.id] || {};
@@ -927,14 +1125,16 @@ function buildDocxBody(){
     });
   });
 
-  const r = state.aiResult || fallbackAssessment();
+  body += xEmpty();
   body += xpara([{text:'07  ', bold:true, size:24, color:GOLD},{text:'Підсумкова оцінка', bold:true, size:24, color:INK}], {before:220, after:90, borderBottom:true});
-  body += xpara('Розраховано автоматично застосунком на основі відповідей вище.', {italic:true, size:18, color:MUTED, after:120});
-  body += xpara([{text:'Рівень впевненості: ', bold:true, size:22},{text:r.confidenceLevel, bold:true, size:22, color:GOLD}], {after:140});
+  body += xpara('Розраховано автоматично застосунком на основі відповідей і коментарів вище (без участі зовнішніх сервісів).', {italic:true, size:18, color:MUTED, after:120});
+  body += xpara([{text:'Рівень впевненості: ', bold:true, size:22},{text:r.confidenceLevel + ' (' + r.overallScore + '%)', bold:true, size:22, color:GOLD}], {after:140});
   body += xpara('Сильні сторони', {bold:true, size:20, underline:true, after:60});
-  body += xpara(r.strengths, {size:20, after:160});
+  r.strengths.forEach(s => { body += xpara('•  ' + s, {size:20, after:60}); });
+  body += xEmpty();
   body += xpara('Зони росту', {bold:true, size:20, underline:true, after:60});
-  body += xpara(r.growthAreas, {size:20, after:180});
+  r.growthAreas.forEach(g => { body += xpara('•  ' + g, {size:20, after:60}); });
+  body += xEmpty();
 
   body += xpara('Обговорення з ТП', {bold:true, size:24, color:INK, before:200, after:90, borderBottom:true});
   body += xpara('Проговорити одразу після візиту.', {italic:true, size:18, color:MUTED, after:100});
@@ -1015,7 +1215,7 @@ async function downloadDocx(){
    RESET
    ========================================================= */
 function resetApp(){
-  state.info = { tpName:'', managerName:'', pointName:'', visitDate:'', timeFrom:'', timeTo:'', format:'', status:'' };
+  state.info = { tpName:'', managerName:'', pointName:'', visitDate:'', timeFrom:'', format:'', status:'' };
   state.checklist = {};
   SECTIONS.forEach(sec => sec.items.forEach(item => { state.checklist[item.id] = { answer:'', comment:'' }; }));
   state.aiResult = null;
