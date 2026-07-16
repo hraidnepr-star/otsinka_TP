@@ -142,6 +142,12 @@ p.screen-sub{color:var(--ink-500);font-size:14px;margin:0 0 22px;line-height:1.5
 /* ---------- checklist ---------- */
 .nz-note{background:#F1EFE7;border:1px solid var(--line);border-radius:var(--radius-sm);padding:11px 14px;font-size:12.5px;color:var(--ink-700);line-height:1.5;margin-bottom:18px;}
 .nz-note strong{color:var(--ink-900);}
+.draft-banner{display:none;align-items:center;gap:10px;background:var(--accent-teal-soft);border:1px solid #BFDBD2;border-radius:var(--radius-sm);padding:11px 14px;margin-bottom:14px;font-size:13px;color:var(--ink-900);}
+.draft-banner.show{display:flex;}
+.draft-dot{width:8px;height:8px;border-radius:50%;background:var(--accent-teal);flex-shrink:0;}
+.draft-dismiss{margin-left:auto;background:none;border:none;color:var(--ink-500);font-size:14px;padding:2px 4px;line-height:1;}
+.draft-dismiss:hover{color:var(--ink-900);}
+.merch-tag{display:inline-block;background:var(--accent-gold-soft);color:var(--accent-gold-dark);border:1px solid #E4CE8F;border-radius:999px;font-family:var(--font-mono);font-size:9.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;margin-right:7px;vertical-align:1px;}
 .progress-track{height:6px;border-radius:99px;background:var(--paper-100);overflow:hidden;margin-bottom:24px;}
 .section-score-row{display:flex;align-items:center;gap:10px;margin:14px 0 0;padding-top:14px;border-top:1px dashed var(--line);}
 .section-score-track{flex:1;height:5px;border-radius:99px;background:var(--paper-100);overflow:hidden;}
@@ -271,6 +277,12 @@ p.screen-sub{color:var(--ink-500);font-size:14px;margin:0 0 22px;line-height:1.5
 
 <div class="wrap">
 
+  <div class="draft-banner" id="draft-banner">
+    <span class="draft-dot"></span>
+    <span id="draft-banner-text">Відновлено незавершену оцінку.</span>
+    <button class="draft-dismiss" onclick="hideDraftBanner()" title="Сховати">✕</button>
+  </div>
+
   <!-- SCREEN 1: INFO -->
   <div class="screen" id="screen-info">
     <div class="card">
@@ -310,6 +322,15 @@ p.screen-sub{color:var(--ink-500);font-size:14px;margin:0 0 22px;line-height:1.5
       </div>
 
       <div class="field">
+        <label>Тип клієнта<span class="required-star">*</span></label>
+        <div class="chip-group" id="grp_clientType">
+          <button class="chip" data-v="РТТ" onclick="setInfoChoice('clientType','РТТ',this)">РТТ</button>
+          <button class="chip" data-v="НСТО" onclick="setInfoChoice('clientType','НСТО',this)">НСТО</button>
+        </div>
+        <div class="hint">Для РТТ у чек-лист додається блок питань про мерчендайзинг.</div>
+      </div>
+
+      <div class="field">
         <label>Статус точки<span class="required-star">*</span></label>
         <div class="chip-group" id="grp_status">
           <button class="chip" data-v="ПКБ (перший візит)" onclick="setInfoChoice('status','ПКБ (перший візит)',this)">ПКБ (перший візит)</button>
@@ -319,7 +340,7 @@ p.screen-sub{color:var(--ink-500);font-size:14px;margin:0 0 22px;line-height:1.5
       </div>
 
       <div class="actions-bar">
-        <span class="progress-note" id="info-progress-note">0/6 заповнено</span>
+        <span class="progress-note" id="info-progress-note">0/8 заповнено</span>
         <button class="btn btn-primary" id="btn-continue" disabled onclick="goToChecklist()">Продовжити →</button>
       </div>
     </div>
@@ -330,7 +351,7 @@ p.screen-sub{color:var(--ink-500);font-size:14px;margin:0 0 22px;line-height:1.5
     <div class="card">
       <h2 class="screen-title">Чек-лист візиту</h2>
       <p class="screen-sub">Розділи 1–5 заповнюйте по ходу візиту, розділ 6 — одразу після завершення.</p>
-      <div class="nz-note"><strong>«Н/З» (не застосовується)</strong> — обирайте, якщо відповідна ситуація просто не виникла під час цього візиту. Такі пункти не впливають на оцінку блоку.</div>
+      <div class="nz-note"><strong>«Н/З» (не застосовується)</strong> — обирайте, якщо відповідна ситуація просто не виникла під час цього візиту. Такі пункти не впливають на оцінку блоку.<br><strong>Заповнене зберігається автоматично</strong> — можна відповісти на дзвінок, заблокувати телефон чи вийти із застосунку, дані не зникнуть.</div>
       <div class="progress-track"><div class="progress-fill" id="checklist-progress-fill" style="width:0%"></div></div>
       <div id="sections-container"></div>
       <div class="actions-bar">
@@ -460,7 +481,47 @@ const SECTIONS = [
       topic:"додаткових потреб клієнта",
       growthNote:"Не виявив додаткові потреби клієнта (допродаж, нові позиції)",
       question:"Які запитання допоможуть побачити, чого клієнту ще бракує, крім основного замовлення?",
-      strengthQuestion:"Як ти помітив ці додаткові потреби клієнта?" }
+      strengthQuestion:"Як ти помітив ці додаткові потреби клієнта?" },
+
+    // --- Мерчендайзинг: лише для РТТ ---
+    { id:'s2_m_outside', label:"Оцінив зовнішній вигляд точки (вивіска, вітрина, вхід)", type:'yn3', weight:10,
+      showIf:'РТТ', merch:true,
+      topic:"зовнішнього вигляду точки",
+      growthNote:"Не звернув уваги на зовнішній вигляд точки",
+      question:"Що можна помітити ще на вході в точку, до початку розмови?",
+      strengthQuestion:"Що тобі впало в око в зовнішньому вигляді точки?" },
+    { id:'s2_m_inside', label:"Оцінив внутрішній вигляд точки (чистота, викладка, порядок)", type:'yn3', weight:10,
+      showIf:'РТТ', merch:true,
+      topic:"внутрішнього вигляду точки",
+      growthNote:"Не оцінив внутрішній вигляд точки і стан викладки",
+      question:"На що всередині точки варто дивитися в першу чергу?",
+      strengthQuestion:"Що ти помітив усередині точки, коли роздивився викладку?" },
+    { id:'s2_m_pos', label:"Перевірив наявність POS-матеріалів (плакати, шелфтокери, воблери)", type:'yn3', weight:15,
+      showIf:'РТТ', merch:true,
+      topic:"POS-матеріалів на точці",
+      growthNote:"Не перевірив наявність POS-матеріалів на точці",
+      question:"Яких POS-матеріалів не вистачає на цій точці? Що можна привезти наступного разу?",
+      strengthQuestion:"Як ти помітив, чого саме з POS-матеріалів бракує на точці?" },
+    { id:'s2_m_offer', label:"Запропонував або запитав про потребу в POS / стелажах", type:'yn3', weight:15,
+      showIf:'РТТ', merch:true,
+      topic:"пропозиції POS-матеріалів і стелажів",
+      growthNote:"Не запропонував і не запитав клієнта про потребу в POS-матеріалах чи стелажах",
+      question:"Як завести розмову про наші стелажі й POS так, щоб це було цікаво самому клієнту?",
+      strengthQuestion:"Як клієнт відреагував, коли ти запропонував POS-матеріали чи стелаж?" },
+    { id:'s2_m_shelf', label:"Звернув увагу, де стоїть продукція (наш фірмовий стелаж чи полиця клієнта)", type:'yn3', weight:20,
+      showIf:'РТТ', merch:true,
+      topic:"місця, де стоїть наша продукція",
+      fields:[{key:'placement',label:"Де саме стоїть продукція"}],
+      growthNote:"Не зафіксував, де саме стоїть наша продукція на точці",
+      question:"Де зараз стоїть наша продукція і що потрібно, щоб перемістити її на краще місце?",
+      strengthQuestion:"Як оцінюєш місце, де стоїть наша продукція, — там її добре видно?" },
+    { id:'s2_m_sku', label:"Зафіксував кількість SKU нашої продукції на точці", type:'yn3', weight:15,
+      showIf:'РТТ', merch:true,
+      topic:"кількості SKU на точці",
+      fields:[{key:'skuCount',label:"Скільки SKU"}],
+      growthNote:"Не зафіксував кількість SKU нашої продукції на точці",
+      question:"Скільки наших SKU зараз на точці і які позиції варто додати?",
+      strengthQuestion:"Що показала кількість SKU на точці — є куди розширювати асортимент?" }
   ]},
   { num:'03', title:"Впевненість і заперечення", note:"Відмічайте, коли ситуація дійсно виникла під час розмови.", items:[
     { id:'s3_calm', label:"Спокійно реагує на відмову / різкість клієнта", type:'yn3', weight:20,
@@ -541,13 +602,14 @@ const SECTIONS = [
       growthNote:"Під час візиту виникла напруга або конфлікт",
       question:"Що там сталося і як вдалося (чи не вдалося) вийти з напруженої ситуації?",
       strengthQuestion:"Як тобі вдалося втримати спокійну атмосферу протягом усього візиту?" },
-    { id:'s6_result', label:"Результат візиту", type:'select', options:['Залишається в ПКБ','Переведено в АКБ','Потрібен повторний візит'], weight:30,
+    { id:'s6_result', label:"Результат візиту", type:'select', options:['Залишається в ПКБ','Переведено в АКБ','Залишається в АКБ','Потрібен повторний візит','Інше'], weight:30,
       topic:"результату візиту",
-      scoreMap:{'Потрібен повторний візит':30,'Залишається в ПКБ':60,'Переведено в АКБ':100},
-      strengthMap:{'Переведено в АКБ':"Точку переведено в АКБ за результатами візиту"},
+      allowComment:true, commentRequiredOn:['Інше'],
+      scoreMap:{'Потрібен повторний візит':30,'Залишається в ПКБ':60,'Залишається в АКБ':80,'Переведено в АКБ':100},
+      strengthMap:{'Переведено в АКБ':"Точку переведено в АКБ за результатами візиту",'Залишається в АКБ':"Точку утримано в АКБ за результатами візиту"},
       growthMap:{'Потрібен повторний візит':"Візит завершився без прогресу — потрібен повторний візит"},
       question:"Що варто підготувати чи з'ясувати до повторного візиту?",
-      strengthQuestion:"Що зіграло вирішальну роль у тому, щоб перевести точку в АКБ?" }
+      strengthQuestion:"Що зіграло вирішальну роль у результаті цього візиту?" }
   ]}
 ];
 const LEVELS = ['Низький','Середній','Високий','Готовий до самостійної роботи'];
@@ -557,7 +619,7 @@ const LEVELS = ['Низький','Середній','Високий','Готов
    ========================================================= */
 let state = {
   screen: 'info',
-  info: { tpName:'', managerName:'', pointName:'', visitDate:'', timeFrom:'', format:'', status:'' },
+  info: { tpName:'', managerName:'', pointName:'', visitDate:'', timeFrom:'', format:'', clientType:'', status:'' },
   checklist: {},
   aiResult: null,
   sheetStatus: 'idle',
@@ -595,34 +657,46 @@ function renderStepper(){
 function setInfo(field, value){
   state.info[field] = value;
   validateInfo();
+  saveState();
 }
 function setInfoChoice(field, value, btnEl){
   state.info[field] = value;
   btnEl.parentElement.querySelectorAll('.chip').forEach(b => b.classList.remove('active'));
   btnEl.classList.add('active');
   validateInfo();
+  saveState();
 }
 function validateInfo(){
   const i = state.info;
-  const requiredOk = [i.tpName, i.managerName, i.pointName, i.visitDate, i.timeFrom, i.format, i.status];
+  const requiredOk = [i.tpName, i.managerName, i.pointName, i.visitDate, i.timeFrom, i.format, i.clientType, i.status];
   const filled = requiredOk.filter(v => v && String(v).trim() !== '').length;
-  document.getElementById('info-progress-note').textContent = filled + '/7 заповнено';
-  document.getElementById('btn-continue').disabled = filled < 7;
+  document.getElementById('info-progress-note').textContent = filled + '/8 заповнено';
+  document.getElementById('btn-continue').disabled = filled < 8;
 }
 function goToChecklist(){
   renderChecklist();
   showScreen('checklist');
+  saveState();
 }
 
 /* =========================================================
    SCREEN 2 — CHECKLIST
    ========================================================= */
 function isItemRequired(item){ return item.type !== 'text2'; }
+function isItemVisible(item){
+  if(!item.showIf) return true;
+  return state.info.clientType === item.showIf;
+}
+function visibleItems(sec){ return sec.items.filter(isItemVisible); }
 function isNegativeAnswer(item, answer){
   if(item.type !== 'yn3' && item.type !== 'yn2') return false;
   return item.invert ? answer === 'Так' : answer === 'Ні';
 }
 function needsComment(item, data){
+  if(item.type === 'select'){
+    if(!item.commentRequiredOn || !item.commentRequiredOn.includes(data.answer)) return false;
+    return !(data.comment && data.comment.trim());
+  }
   return isNegativeAnswer(item, data.answer) && !(data.comment && data.comment.trim());
 }
 function findItemById(id){
@@ -641,42 +715,63 @@ function isItemAnswered(item, data){
 function renderChecklist(){
   let html = '';
   SECTIONS.forEach(sec => {
+    const items = visibleItems(sec);
     html += '<div class="section-block">';
     html += '<div class="section-head"><span class="section-num">' + sec.num + '</span><span class="section-title">' + sec.title + '</span>' + (sec.phase ? '<span class="section-phase">' + sec.phase + '</span>' : '') + '</div>';
     if(sec.note) html += '<div class="section-note">' + sec.note + '</div>';
-    sec.items.forEach(item => { html += renderItem(item); });
+    items.forEach(item => { html += renderItem(item); });
     html += '<div class="section-score-row"><div class="section-score-track"><div class="section-score-fill" id="scorefill_' + sec.num + '" style="width:0%"></div></div><span class="section-score-label" id="scoretext_' + sec.num + '">Оцінка блоку: —</span></div>';
     html += '</div>';
   });
   document.getElementById('sections-container').innerHTML = html;
+  SECTIONS.forEach(sec => visibleItems(sec).forEach(item => refreshCommentRequirement(item.id)));
   updateChecklistProgress();
   updateAllSectionScores();
 }
 
+function escAttr(s){ return String(s).replace(/"/g,'&quot;'); }
+
 function renderItem(item){
-  let inner = '<div class="item-label">' + item.label + '</div>';
+  const d = state.checklist[item.id] || {};
+  let inner = '<div class="item-label">' + (item.merch ? '<span class="merch-tag">мерч</span>' : '') + item.label + '</div>';
+
   if(item.type === 'yn3' || item.type === 'yn2'){
     const opts = item.type === 'yn3' ? ['Так','Ні','Н/З'] : ['Так','Ні'];
     inner += '<div class="answer-row" id="ans_' + item.id + '">';
-    opts.forEach(o => { inner += '<button type="button" class="ans-btn" data-v="' + o + '" onclick="setAnswer(\'' + item.id + '\',\'' + o + '\',this)">' + o + '</button>'; });
+    opts.forEach(o => {
+      const act = d.answer === o ? ' active' : '';
+      inner += '<button type="button" class="ans-btn' + act + '" data-v="' + o + '" onclick="setAnswer(\'' + item.id + '\',\'' + o + '\',this)">' + o + '</button>';
+    });
     inner += '</div>';
-    inner += '<textarea class="item-comment" id="comment_' + item.id + '" placeholder="Коментар (необов\'язково)" oninput="setComment(\'' + item.id + '\', this.value)"></textarea>';
+    inner += '<textarea class="item-comment" id="comment_' + item.id + '" placeholder="Коментар (необов\'язково)" oninput="setComment(\'' + item.id + '\', this.value)">' + (d.comment || '') + '</textarea>';
     const negLabel = item.invert ? 'Так' : 'Ні';
     inner += '<div class="comment-hint" id="comment_hint_' + item.id + '">⚠ Коментар обов\'язковий, якщо відповідь «' + negLabel + '»</div>';
+
   } else if(item.type === 'select'){
     inner += '<div class="answer-row" id="ans_' + item.id + '">';
-    item.options.forEach(o => { inner += '<button type="button" class="ans-btn opt" data-v="' + o + '" onclick="setAnswer(\'' + item.id + '\',\'' + o + '\',this)">' + o + '</button>'; });
+    item.options.forEach(o => {
+      const act = d.answer === o ? ' active' : '';
+      inner += '<button type="button" class="ans-btn opt' + act + '" data-v="' + o + '" onclick="setAnswer(\'' + item.id + '\',\'' + o + '\',this)">' + o + '</button>';
+    });
     inner += '</div>';
+    if(item.allowComment){
+      inner += '<textarea class="item-comment" id="comment_' + item.id + '" placeholder="Коментар (необов\'язково)" oninput="setComment(\'' + item.id + '\', this.value)">' + (d.comment || '') + '</textarea>';
+      const reqOn = (item.commentRequiredOn || []).map(o => '«' + o + '»').join(', ');
+      inner += '<div class="comment-hint" id="comment_hint_' + item.id + '">⚠ Коментар обов\'язковий, якщо обрано ' + reqOn + ' — опишіть, чим завершився візит</div>';
+    }
+
   } else if(item.type === 'number'){
-    inner += '<div class="number-row"><input type="number" min="0" oninput="setAnswer(\'' + item.id + '\', this.value, null)"><span class="unit">' + item.unit + '</span></div>';
+    inner += '<div class="number-row"><input type="number" min="0" value="' + escAttr(d.answer || '') + '" oninput="setAnswer(\'' + item.id + '\', this.value, null)"><span class="unit">' + item.unit + '</span></div>';
+
   } else if(item.type === 'text2'){
     inner += '<div class="extra-fields">';
-    item.fields.forEach(f => { inner += '<input type="text" placeholder="' + f.label + '" oninput="setExtra(\'' + item.id + '\',\'' + f.key + '\', this.value)">'; });
+    item.fields.forEach(f => { inner += '<input type="text" placeholder="' + f.label + '" value="' + escAttr(d[f.key] || '') + '" oninput="setExtra(\'' + item.id + '\',\'' + f.key + '\', this.value)">'; });
     inner += '</div>';
   }
+
   if(item.fields && item.type !== 'text2'){
     inner += '<div class="extra-fields">';
-    item.fields.forEach(f => { inner += '<input type="text" placeholder="' + f.label + '" oninput="setExtra(\'' + item.id + '\',\'' + f.key + '\', this.value)">'; });
+    item.fields.forEach(f => { inner += '<input type="text" placeholder="' + f.label + '" value="' + escAttr(d[f.key] || '') + '" oninput="setExtra(\'' + item.id + '\',\'' + f.key + '\', this.value)">'; });
     inner += '</div>';
   }
   return '<div class="item">' + inner + '</div>';
@@ -692,13 +787,15 @@ function setAnswer(itemId, value, btnEl){
   refreshCommentRequirement(itemId);
   updateChecklistProgress();
   updateAllSectionScores();
+  saveState();
 }
 function setComment(itemId, value){
   state.checklist[itemId].comment = value;
   refreshCommentRequirement(itemId);
   updateChecklistProgress();
+  saveState();
 }
-function setExtra(itemId, key, value){ state.checklist[itemId][key] = value; }
+function setExtra(itemId, key, value){ state.checklist[itemId][key] = value; saveState(); }
 
 function refreshCommentRequirement(itemId){
   const data = state.checklist[itemId];
@@ -706,16 +803,21 @@ function refreshCommentRequirement(itemId){
   const textarea = document.getElementById('comment_' + itemId);
   const hint = document.getElementById('comment_hint_' + itemId);
   if(!textarea || !hint || !item) return;
-  const isNegative = isNegativeAnswer(item, data.answer);
-  const requires = isNegative && !(data.comment && data.comment.trim());
+  const requires = needsComment(item, data);
+  const isSelect = item.type === 'select';
+  const negative = isSelect ? (item.commentRequiredOn || []).includes(data.answer) : isNegativeAnswer(item, data.answer);
   textarea.classList.toggle('comment-required', requires);
   hint.classList.toggle('show', requires);
-  textarea.placeholder = isNegative ? "Коментар обов'язковий — опишіть, що саме пішло не так" : "Коментар (необов'язково)";
+  if(negative){
+    textarea.placeholder = isSelect ? "Коментар обов'язковий — опишіть, чим завершився візит" : "Коментар обов'язковий — опишіть, що саме пішло не так";
+  } else {
+    textarea.placeholder = "Коментар (необов'язково)";
+  }
 }
 
 function updateChecklistProgress(){
   let total = 0, done = 0;
-  SECTIONS.forEach(sec => sec.items.forEach(item => {
+  SECTIONS.forEach(sec => visibleItems(sec).forEach(item => {
     if(!isItemRequired(item)) return;
     total++;
     if(isItemAnswered(item, state.checklist[item.id])) done++;
@@ -742,7 +844,7 @@ function itemScoreValue(item, data){
 }
 function computeSectionScore(sec){
   let sum = 0, weightTotal = 0;
-  sec.items.forEach(item => {
+  visibleItems(sec).forEach(item => {
     if(item.weight == null) return;
     const val = itemScoreValue(item, state.checklist[item.id] || {});
     if(val != null){ sum += val * item.weight; weightTotal += item.weight; }
@@ -813,7 +915,7 @@ function generateAssessment(){
   let growthEntries = [];
 
   SECTIONS.forEach(sec => {
-    sec.items.forEach(item => {
+    visibleItems(sec).forEach(item => {
       const d = state.checklist[item.id] || {};
       if(item.weight == null) return;
 
@@ -887,6 +989,7 @@ async function finishEvaluation(){
   state.aiResult = generateAssessment();
   renderResults();
   showScreen('results');
+  saveState();
   submitToSheet();
 }
 
@@ -984,6 +1087,7 @@ async function submitToSheet(){
     pointName: state.info.pointName,
     dateTime: formatDateTime(state.info),
     format: state.info.format,
+    clientType: state.info.clientType,
     status: state.info.status,
     confidenceLevel: state.aiResult ? state.aiResult.confidenceLevel : '',
     strengths: state.aiResult ? state.aiResult.strengths.join(' | ') : '',
@@ -1092,6 +1196,7 @@ function buildDocxBody(){
   body += infoLine('Назва точки / СТО', state.info.pointName);
   body += infoLine('Дата і час', formatDateTime(state.info));
   body += infoLine('Формат візиту', state.info.format);
+  body += infoLine('Тип клієнта', state.info.clientType);
   body += infoLine('Статус точки', state.info.status);
   body += xEmpty();
 
@@ -1107,7 +1212,7 @@ function buildDocxBody(){
       {text: '   —   Оцінка блоку: ' + (v == null ? '—' : v + '%'), bold:true, size:20, color:scoreColor2}
     ], {before:220, after:90, borderBottom:true});
     if(sec.note) body += xpara(sec.note, {italic:true, size:18, color:MUTED, after:90});
-    sec.items.forEach(item => {
+    visibleItems(sec).forEach(item => {
       const d = state.checklist[item.id] || {};
       if(item.type === 'text2'){
         const vals = (item.fields||[]).map(f => f.label + ': ' + (d[f.key] || '—')).join('   ');
@@ -1215,23 +1320,138 @@ async function downloadDocx(){
    RESET
    ========================================================= */
 function resetApp(){
-  state.info = { tpName:'', managerName:'', pointName:'', visitDate:'', timeFrom:'', format:'', status:'' };
+  state.info = { tpName:'', managerName:'', pointName:'', visitDate:'', timeFrom:'', format:'', clientType:'', status:'' };
   state.checklist = {};
   SECTIONS.forEach(sec => sec.items.forEach(item => { state.checklist[item.id] = { answer:'', comment:'' }; }));
   state.aiResult = null;
   state.sheetStatus = 'idle';
+  clearSavedState();
   document.querySelectorAll('#screen-info input').forEach(el => el.value = '');
   document.querySelectorAll('#screen-info .chip').forEach(el => el.classList.remove('active'));
   document.getElementById('btn-continue').disabled = true;
-  document.getElementById('info-progress-note').textContent = '0/7 заповнено';
+  document.getElementById('info-progress-note').textContent = '0/8 заповнено';
+  hideDraftBanner();
   showScreen('info');
 }
+
+/* =========================================================
+   АВТОЗБЕРЕЖЕННЯ ЧЕРНЕТКИ
+   ---------------------------------------------------------
+   Дані зберігаються в пам'яті браузера на цьому пристрої після
+   кожної зміни. Тому дзвінок, блокування екрана, перехід в іншу
+   програму чи випадкове закриття вкладки не призводять до втрати
+   заповненого — при поверненні все підтягується назад.
+   Дані нікуди не надсилаються і зникають після натискання
+   «Нова оцінка» або завершення й надсилання оцінки.
+   ========================================================= */
+const STORAGE_KEY = 'tp_evaluation_draft_v1';
+
+function saveState(){
+  try {
+    const payload = {
+      screen: state.screen === 'processing' ? 'checklist' : state.screen,
+      info: state.info,
+      checklist: state.checklist,
+      aiResult: state.aiResult,
+      savedAt: new Date().toISOString()
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+  } catch(e){
+    // Приватний режим або переповнене сховище — просто працюємо без автозбереження.
+    console.warn('Не вдалося зберегти чернетку:', e);
+  }
+}
+
+function loadSavedState(){
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return null;
+    return JSON.parse(raw);
+  } catch(e){
+    console.warn('Не вдалося прочитати чернетку:', e);
+    return null;
+  }
+}
+
+function clearSavedState(){
+  try { localStorage.removeItem(STORAGE_KEY); } catch(e){ /* ignore */ }
+}
+
+function restoreInfoUI(){
+  const map = { tpName:'in_tpName', managerName:'in_managerName', pointName:'in_pointName', visitDate:'in_visitDate', timeFrom:'in_timeFrom' };
+  Object.keys(map).forEach(k => {
+    const el = document.getElementById(map[k]);
+    if(el) el.value = state.info[k] || '';
+  });
+  const chipGroups = { format:'grp_format', clientType:'grp_clientType', status:'grp_status' };
+  Object.keys(chipGroups).forEach(k => {
+    const grp = document.getElementById(chipGroups[k]);
+    if(!grp) return;
+    grp.querySelectorAll('.chip').forEach(b => {
+      b.classList.toggle('active', b.dataset.v === state.info[k]);
+    });
+  });
+  validateInfo();
+}
+
+function showDraftBanner(savedAt){
+  const el = document.getElementById('draft-banner');
+  if(!el) return;
+  let when = '';
+  try {
+    const d = new Date(savedAt);
+    when = d.toLocaleString('uk-UA', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
+  } catch(e){ /* ignore */ }
+  document.getElementById('draft-banner-text').textContent = 'Відновлено незавершену оцінку' + (when ? ' від ' + when : '') + '.';
+  el.classList.add('show');
+}
+function hideDraftBanner(){
+  const el = document.getElementById('draft-banner');
+  if(el) el.classList.remove('show');
+}
+
+function restoreDraft(){
+  const saved = loadSavedState();
+  if(!saved) return false;
+
+  state.info = Object.assign(state.info, saved.info || {});
+  // Зливаємо збережені відповіді з поточною схемою чек-листа:
+  // якщо в чек-лист згодом додадуть нові пункти, стара чернетка не зламається.
+  Object.keys(saved.checklist || {}).forEach(id => {
+    if(state.checklist[id]) state.checklist[id] = saved.checklist[id];
+  });
+  state.aiResult = saved.aiResult || null;
+
+  restoreInfoUI();
+
+  const hasAnything = Object.values(state.info).some(v => v && String(v).trim() !== '');
+  if(!hasAnything) return false;
+
+  if(saved.screen === 'results' && state.aiResult){
+    renderChecklist();
+    renderResults();
+    showScreen('results');
+  } else if(saved.screen === 'checklist'){
+    renderChecklist();
+    showScreen('checklist');
+  } else {
+    showScreen('info');
+  }
+  showDraftBanner(saved.savedAt);
+  return true;
+}
+
+// Додаткові страховки: зберігаємо стан, коли вкладку згортають,
+// перемикають застосунок або закривають сторінку.
+document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'hidden') saveState(); });
+window.addEventListener('pagehide', saveState);
+window.addEventListener('beforeunload', saveState);
 
 /* =========================================================
    INIT
    ========================================================= */
 renderStepper();
-showScreen('info');
+if(!restoreDraft()) showScreen('info');
 </script>
 </body>
 </html>
