@@ -314,14 +314,6 @@ p.screen-sub{color:var(--ink-500);font-size:14px;margin:0 0 22px;line-height:1.5
       </div>
 
       <div class="field">
-        <label>Формат візиту<span class="required-star">*</span></label>
-        <div class="chip-group" id="grp_format">
-          <button class="chip" data-v="спільний" onclick="setInfoChoice('format','спільний',this)">Спільний</button>
-          <button class="chip" data-v="самостійний (під наглядом)" onclick="setInfoChoice('format','самостійний (під наглядом)',this)">Самостійний (під наглядом)</button>
-        </div>
-      </div>
-
-      <div class="field">
         <label>Тип клієнта<span class="required-star">*</span></label>
         <div class="chip-group" id="grp_clientType">
           <button class="chip" data-v="РТТ" onclick="setInfoChoice('clientType','РТТ',this)">РТТ</button>
@@ -340,7 +332,7 @@ p.screen-sub{color:var(--ink-500);font-size:14px;margin:0 0 22px;line-height:1.5
       </div>
 
       <div class="actions-bar">
-        <span class="progress-note" id="info-progress-note">0/8 заповнено</span>
+        <span class="progress-note" id="info-progress-note">0/7 заповнено</span>
         <button class="btn btn-primary" id="btn-continue" disabled onclick="goToChecklist()">Продовжити →</button>
       </div>
     </div>
@@ -350,13 +342,16 @@ p.screen-sub{color:var(--ink-500);font-size:14px;margin:0 0 22px;line-height:1.5
   <div class="screen" id="screen-checklist">
     <div class="card">
       <h2 class="screen-title">Чек-лист візиту</h2>
-      <p class="screen-sub">Розділи 1–5 заповнюйте по ходу візиту, розділ 6 — одразу після завершення.</p>
-      <div class="nz-note"><strong>«Н/З» (не застосовується)</strong> — обирайте, якщо відповідна ситуація просто не виникла під час цього візиту. Такі пункти не впливають на оцінку блоку.<br><strong>Заповнене зберігається автоматично</strong> — можна відповісти на дзвінок, заблокувати телефон чи вийти із застосунку, дані не зникнуть.</div>
+      <p class="screen-sub">Заповнюйте по ходу візиту; розділ «Динаміка розмови» — одразу після завершення. Склад пунктів залежить від типу клієнта та статусу точки.</p>
+      <div class="nz-note"><strong>«Н/З» (не застосовується)</strong> — обирайте, якщо відповідна ситуація просто не виникла під час цього візиту. Такий пункт повністю виключається з підрахунку (не рахується ні як «Так», ні як «Ні») і ніяк не впливає на % блоку.<br><strong>Заповнене зберігається автоматично</strong> — можна відповісти на дзвінок, заблокувати телефон чи вийти із застосунку, дані не зникнуть.</div>
       <div class="progress-track"><div class="progress-fill" id="checklist-progress-fill" style="width:0%"></div></div>
       <div id="sections-container"></div>
       <div class="actions-bar">
-        <span class="progress-note" id="checklist-progress-note">0/0 пунктів оцінено</span>
-        <button class="btn btn-primary" id="btn-finish" disabled onclick="finishEvaluation()">Завершити оцінку ✓</button>
+        <button class="btn btn-outline btn-sm" onclick="backToInfo()">← Назад</button>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span class="progress-note" id="checklist-progress-note">0/0 пунктів оцінено</span>
+          <button class="btn btn-primary" id="btn-finish" disabled onclick="finishEvaluation()">Завершити оцінку ✓</button>
+        </div>
       </div>
     </div>
   </div>
@@ -444,149 +439,166 @@ const CONFIG = {
    ========================================================= */
 const SECTIONS = [
   { num:'01', title:"Вхід і контакт", phase:"Під час візиту", items:[
-    { id:'s1_purpose', label:"Озвучив мету візиту на початку", type:'yn3', weight:50,
+    { id:'s1_purpose', label:"Озвучив мету візиту на початку", type:'yn3', weight:1,
       topic:"мети візиту на початку розмови",
       growthNote:"Не озвучив мету візиту на самому початку розмови",
       question:"Чому не вийшло одразу сказати клієнту, навіщо ти прийшов? Як зробити це коротко на початку наступного разу?",
       strengthQuestion:"Що саме допомогло тобі так впевнено звучати, коли озвучував мету візиту?" },
-    { id:'s1_name', label:"Знає ім'я співрозмовника / пам'ятає попередні домовленості", type:'yn3', weight:50,
+    { id:'s1_name', label:"Знає ім'я співрозмовника / пам'ятає попередні домовленості", type:'yn3', weight:1,
       topic:"того, як тримаєш контакт і пам'ятаєш домовленості",
       growthNote:"Не показав, що пам'ятає ім'я співрозмовника чи попередні домовленості",
       question:"Що допоможе тобі перед візитом швидко пригадати, з ким і про що вже домовлялись?",
-      strengthQuestion:"Як тобі вдалося одразу згадати ім'я клієнта й попередні домовленості — є якийсь лайфхак?" },
-    { id:'s1_contact', label:"З ким говорили", type:'text2', fields:[{key:'name',label:"ПІБ"},{key:'position',label:"Посада"}] }
+      strengthQuestion:"Як тобі вдалося одразу згадати ім'я клієнта й попередні домовленості — є якийсь лайфхак?" }
   ]},
   { num:'02', title:"Збір інформації про клієнта", items:[
-    { id:'s2_volume', label:"З'ясував обсяги споживання", type:'yn3', weight:25,
+    { id:'s2_volume', label:"З'ясував обсяги споживання", type:'yn3', weight:1, show:['ПКБ_РТТ','ПКБ_НСТО'],
       topic:"обсягів споживання клієнта",
       growthNote:"Не з'ясував обсяги споживання клієнта",
       question:"Як думаєш, які запитання спрацювали б краще, щоб дізнатись реальні обсяги клієнта?",
       strengthQuestion:"Як тобі вдалося швидко з'ясувати реальні обсяги споживання клієнта?" },
-    { id:'s2_supplier', label:"З'ясував поточного постачальника", type:'yn3', weight:25,
+    { id:'s2_supplier', label:"З'ясував поточного постачальника", type:'yn3', weight:1, show:['ПКБ_РТТ','ПКБ_НСТО'],
       topic:"поточного постачальника клієнта",
       growthNote:"Не з'ясував, з яким постачальником зараз працює клієнт",
       question:"Що завадило дізнатись, з ким клієнт зараз працює? Як підняти цю тему наступного разу, якщо розмову перебивають?",
       strengthQuestion:"Як тобі вдалося розговорити клієнта про те, з ким він зараз працює?" },
-    { id:'s2_packaging', label:"Уточнив наявність бочкової тари / фасовки", type:'yn3', weight:15,
+    { id:'s2_packaging', label:"Уточнив наявність бочкової тари / фасовки", type:'yn3', weight:1, show:['ПКБ_РТТ','ПКБ_НСТО'],
       topic:"тари й фасовки",
       growthNote:"Не уточнив наявність бочкової тари / фасовки у клієнта",
       question:"Наскільки взагалі критично питання тари для цього клієнта? Коли варто його піднімати?",
       strengthQuestion:"Як вийшло природно підняти тему тари й фасовки в розмові?" },
-    { id:'s2_lpr', label:"Зафіксував контакти ЛПР (ПІБ, посада, телефон)", type:'yn3', weight:20,
+    { id:'s2_lpr', label:"Зафіксував контакти ЛПР (ПІБ, посада, телефон)", type:'yn3', weight:1, show:['ПКБ_РТТ','ПКБ_НСТО'],
       topic:"контактів особи, яка приймає рішення",
       growthNote:"Не зафіксував контакти особи, яка приймає рішення (ЛПР)",
       question:"Якщо співрозмовник — не той, хто вирішує, як зрозуміти, хто насправді приймає рішення?",
       strengthQuestion:"Як тобі вдалося вийти на контакти людини, яка приймає рішення?" },
-    { id:'s2_needs', label:"Виявив додаткові потреби (допродаж, нові позиції)", type:'yn3', weight:15,
+    { id:'s2_needs', label:"Виявив додаткові потреби (допродаж, нові позиції)", type:'yn3', weight:1,
       topic:"додаткових потреб клієнта",
       growthNote:"Не виявив додаткові потреби клієнта (допродаж, нові позиції)",
       question:"Які запитання допоможуть побачити, чого клієнту ще бракує, крім основного замовлення?",
       strengthQuestion:"Як ти помітив ці додаткові потреби клієнта?" },
-
-    // --- Мерчендайзинг: лише для РТТ ---
-    { id:'s2_m_outside', label:"Оцінив зовнішній вигляд точки (вивіска, вітрина, вхід)", type:'yn3', weight:10,
-      showIf:'РТТ', merch:true,
+    { id:'s2_m_outside', label:"Оцінив зовнішній вигляд точки (вивіска, вітрина, вхід)", type:'yn3', weight:1, show:['ПКБ_РТТ'], merch:true,
       topic:"зовнішнього вигляду точки",
       growthNote:"Не звернув уваги на зовнішній вигляд точки",
       question:"Що можна помітити ще на вході в точку, до початку розмови?",
       strengthQuestion:"Що тобі впало в око в зовнішньому вигляді точки?" },
-    { id:'s2_m_inside', label:"Оцінив внутрішній вигляд точки (чистота, викладка, порядок)", type:'yn3', weight:10,
-      showIf:'РТТ', merch:true,
+    { id:'s2_m_inside', label:"Оцінив внутрішній вигляд точки (чистота, викладка, порядок)", type:'yn3', weight:1, show:['АКБ_РТТ','ПКБ_РТТ'], merch:true,
       topic:"внутрішнього вигляду точки",
       growthNote:"Не оцінив внутрішній вигляд точки і стан викладки",
       question:"На що всередині точки варто дивитися в першу чергу?",
       strengthQuestion:"Що ти помітив усередині точки, коли роздивився викладку?" },
-    { id:'s2_m_pos', label:"Перевірив наявність POS-матеріалів (плакати, шелфтокери, воблери)", type:'yn3', weight:15,
-      showIf:'РТТ', merch:true,
+    { id:'s2_m_pos', label:"Перевірив наявність POS-матеріалів (плакати, шелфтокери, воблери)", type:'yn3', weight:1, show:['АКБ_РТТ','ПКБ_РТТ'], merch:true,
       topic:"POS-матеріалів на точці",
       growthNote:"Не перевірив наявність POS-матеріалів на точці",
       question:"Яких POS-матеріалів не вистачає на цій точці? Що можна привезти наступного разу?",
       strengthQuestion:"Як ти помітив, чого саме з POS-матеріалів бракує на точці?" },
-    { id:'s2_m_offer', label:"Запропонував або запитав про потребу в POS / стелажах", type:'yn3', weight:15,
-      showIf:'РТТ', merch:true,
-      topic:"пропозиції POS-матеріалів і стелажів",
-      growthNote:"Не запропонував і не запитав клієнта про потребу в POS-матеріалах чи стелажах",
-      question:"Як завести розмову про наші стелажі й POS так, щоб це було цікаво самому клієнту?",
-      strengthQuestion:"Як клієнт відреагував, коли ти запропонував POS-матеріали чи стелаж?" },
-    { id:'s2_m_shelf', label:"Звернув увагу, де стоїть продукція (наш фірмовий стелаж чи полиця клієнта)", type:'yn3', weight:20,
-      showIf:'РТТ', merch:true,
+    { id:'s2_m_ads', label:"Перевірив наявність рекламних матеріалів (банера, одяг, обладнання)", type:'yn3', weight:1, show:['АКБ_НСТО','ПКБ_НСТО'], merch:true,
+      topic:"рекламних матеріалів на точці",
+      growthNote:"Не перевірив наявність рекламних матеріалів (банери, одяг, обладнання)",
+      question:"Яких рекламних матеріалів бракує на точці? Що варто привезти чи оновити?",
+      strengthQuestion:"Як ти помітив, чого з рекламних матеріалів бракує на точці?" },
+    { id:'s2_m_shelf', label:"Звернув увагу, де стоїть продукція (наш фірмовий стелаж чи полиця клієнта)", type:'yn3', weight:1, show:['АКБ_РТТ','АКБ_НСТО'], merch:true,
       topic:"місця, де стоїть наша продукція",
       fields:[{key:'placement',label:"Де саме стоїть продукція"}],
       growthNote:"Не зафіксував, де саме стоїть наша продукція на точці",
       question:"Де зараз стоїть наша продукція і що потрібно, щоб перемістити її на краще місце?",
       strengthQuestion:"Як оцінюєш місце, де стоїть наша продукція, — там її добре видно?" },
-    { id:'s2_m_sku', label:"Зафіксував кількість SKU нашої продукції на точці", type:'yn3', weight:15,
-      showIf:'РТТ', merch:true,
+    { id:'s2_m_sku', label:"Зафіксував кількість SKU нашої продукції на точці", type:'yn3', weight:1, show:['АКБ_РТТ','АКБ_НСТО'], merch:true,
       topic:"кількості SKU на точці",
       fields:[{key:'skuCount',label:"Скільки SKU"}],
       growthNote:"Не зафіксував кількість SKU нашої продукції на точці",
       question:"Скільки наших SKU зараз на точці і які позиції варто додати?",
-      strengthQuestion:"Що показала кількість SKU на точці — є куди розширювати асортимент?" }
+      strengthQuestion:"Що показала кількість SKU на точці — є куди розширювати асортимент?" },
+    { id:'s2_shpk', label:"Уточнив чи є клієнт учасником ШПК", type:'yn3', weight:1, show:['АКБ_РТТ'],
+      topic:"участі клієнта у ШПК",
+      growthNote:"Не уточнив, чи є клієнт учасником ШПК",
+      question:"Чи є клієнт учасником ШПК і що це означає для подальшої роботи з ним?",
+      strengthQuestion:"Як вдалося з'ясувати статус клієнта у ШПК?" }
   ]},
   { num:'03', title:"Впевненість і заперечення", note:"Відмічайте, коли ситуація дійсно виникла під час розмови.", items:[
-    { id:'s3_calm', label:"Спокійно реагує на відмову / різкість клієнта", type:'yn3', weight:20,
+    { id:'s3_calm', label:"Спокійно реагує на відмову / різкість клієнта", type:'yn3', weight:1,
       topic:"реакції на відмову чи різкість клієнта",
       growthNote:"Втрачав спокій при відмові чи різкості клієнта",
       question:"Що саме вибило з рівноваги цього разу? Яка фраза могла б виручити в такій ситуації?",
       strengthQuestion:"Як тобі вдалося зберегти спокій, коли клієнт був різким?" },
-    { id:'s3_tech', label:"Впевнено відповідає на технічні питання (допуски мастил, специфікації)", type:'yn3', weight:25,
+    { id:'s3_tech', label:"Впевнено відповідає на технічні питання (допуски мастил, специфікації)", type:'yn3', weight:1,
       topic:"технічних питань про мастила",
       growthNote:"Невпевнено відповідав на технічні питання про мастила",
       question:"Які технічні питання зависли без відповіді? Що варто підтягнути перед наступним візитом?",
       strengthQuestion:"Звідки така впевненість у технічних деталях — готувався заздалегідь?" },
-    { id:'s3_honest', label:"Якщо не знає відповіді — чесно каже «уточню», а не вигадує", type:'yn3', weight:15,
+    { id:'s3_honest', label:"Якщо не знає відповіді — чесно каже «уточню», а не вигадує", type:'yn3', weight:1,
       topic:"чесності у відповідях, коли чогось не знаєш",
       growthNote:"Намагався відповісти навмання замість чесного «уточню»",
       question:"Коли було важко сказати «зараз уточню»? Як швидко повернутись із відповіддю до клієнта?",
       strengthQuestion:"Як тобі було комфортно чесно сказати «уточню», а не вигадувати на ходу?" },
-    { id:'s3_price', label:"Працює з ціновими запереченнями аргументами, а не знижкою", type:'yn3', weight:25,
+    { id:'s3_price', label:"Працює з ціновими запереченнями аргументами, а не знижкою", type:'yn3', weight:1,
       topic:"роботи з ціновими запереченнями",
       growthNote:"Реагував на цінові заперечення знижкою, а не аргументами",
       question:"Яку ще аргументацію, крім знижки, можна підготувати для цього клієнта?",
       strengthQuestion:"Яка аргументація спрацювала проти цінових заперечень замість знижки?" },
-    { id:'s3_compare', label:"Впевнено порівнює з конкурентами (Bardahl, Motul тощо)", type:'yn3', weight:15,
+    { id:'s3_compare', label:"Впевнено порівнює з конкурентами (Bardahl, Motul тощо)", type:'yn3', weight:1,
       topic:"порівняння з конкурентами",
       growthNote:"Невпевнено порівнював продукт із конкурентами (Bardahl, Motul тощо)",
       question:"Яких аргументів порівняння з конкурентами не вистачило під час розмови?",
       strengthQuestion:"Що допомогло тобі впевнено порівняти продукт із конкурентами?" }
   ]},
   { num:'04', title:"Робота з ЛПР", items:[
-    { id:'s4_influence', label:"Розуміє, чи впливає співрозмовник на рішення", type:'yn3', weight:40,
+    { id:'s4_influence', label:"Розуміє, чи впливає співрозмовник на рішення", type:'yn3', weight:1, show:['ПКБ_РТТ','ПКБ_НСТО'],
       topic:"ролі співрозмовника в прийнятті рішення",
       growthNote:"Не з'ясував, чи впливає співрозмовник на остаточне рішення",
       question:"Як делікатно зрозуміти, чи впливає співрозмовник на рішення?",
       strengthQuestion:"Як ти зрозумів, що співрозмовник дійсно впливає на рішення?" },
-    { id:'s4_others', label:"Питає про інших причетних до рішення", type:'yn3', weight:25,
+    { id:'s4_others', label:"Питає про інших причетних до рішення", type:'yn3', weight:1, show:['ПКБ_РТТ','ПКБ_НСТО'],
       topic:"інших причетних до рішення",
       growthNote:"Не запитав про інших причетних до рішення",
       question:"Яке запитання допоможе дізнатись, хто ще причетний до рішення?",
       strengthQuestion:"Як вдалося природно запитати про інших причетних до рішення?" },
-    { id:'s4_adapt', label:"Адаптує аргументи під роль співрозмовника", type:'yn3', weight:35,
+    { id:'s4_adapt', label:"Адаптує аргументи під роль співрозмовника", type:'yn3', weight:1,
       topic:"адаптації аргументів під співрозмовника",
       growthNote:"Не адаптував аргументи під роль співрозмовника",
       question:"Чим аргументи для цього співрозмовника мали б відрізнятись, скажімо, від розмови з власником СТО?",
-      strengthQuestion:"Як ти підлаштував аргументи саме під цього співрозмовника?" }
+      strengthQuestion:"Як ти підлаштував аргументи саме під цього співрозмовника?" },
+    { id:'s4_newsku', label:"Запропонував мінімум 1 новий SKU", type:'yn3', weight:1,
+      topic:"пропозиції нового SKU",
+      growthNote:"Не запропонував жодного нового SKU",
+      question:"Який новий SKU міг би зацікавити цього клієнта? Як його презентувати наступного разу?",
+      strengthQuestion:"Як клієнт відреагував на новий SKU, який ти запропонував?" },
+    { id:'s4_promo', label:"Розповів про діючі акції", type:'yn3', weight:1,
+      topic:"розповіді про діючі акції",
+      growthNote:"Не розповів клієнту про діючі акції",
+      question:"Які діючі акції були б цікаві саме цьому клієнту?",
+      strengthQuestion:"Як діючі акції допомогли зачепити клієнта в розмові?" }
   ]},
   { num:'05', title:"Завершення візиту", items:[
-    { id:'s5_summary', label:"Підсумував домовленості вголос", type:'yn3', weight:40,
+    { id:'s5_summary', label:"Підсумував домовленості вголос", type:'yn3', weight:1, show:['ПКБ_РТТ','ПКБ_НСТО'],
       topic:"підсумку домовленостей наприкінці",
       growthNote:"Не підсумував домовленості вголос наприкінці візиту",
       question:"Як коротко підсумувати домовленості вголос, щоб і ти, і клієнт пам'ятали одне й те саме?",
       strengthQuestion:"Як тобі вдалося чітко підсумувати домовленості наприкінці розмови?" },
-    { id:'s5_nextstep', label:"Є конкретний next step: дата + відповідальний", type:'yn3', weight:60,
-      fields:[{key:'when',label:"Дата/час"},{key:'who',label:"Хто відповідальний"}],
+    { id:'s5_nextstep', label:"Є конкретний next step: дата + відповідальний", type:'yn3', weight:1, show:['ПКБ_РТТ','ПКБ_НСТО'],
       topic:"конкретного наступного кроку",
+      fields:[{key:'when',label:"Дата/час"},{key:'who',label:"Хто відповідальний"}],
       growthNote:"Не зафіксував конкретний next step (дату і відповідального)",
       question:"Який конкретний наступний крок і дедлайн варто було зафіксувати перед тим, як піти?",
-      strengthQuestion:"Як тобі вдалося одразу зафіксувати конкретний наступний крок і дедлайн?" }
+      strengthQuestion:"Як тобі вдалося одразу зафіксувати конкретний наступний крок і дедлайн?" },
+    { id:'s5_nextbuy', label:"Погоджено дату наступної закупки клієнта", type:'yn3', weight:1, show:['АКБ_РТТ','АКБ_НСТО'],
+      topic:"дати наступної закупки",
+      fields:[{key:'when',label:"Дата наступної закупки"}],
+      growthNote:"Не погоджено дату наступної закупки клієнта",
+      question:"Коли клієнт планує наступну закупку і як це закріпити?",
+      strengthQuestion:"Як вдалося одразу погодити дату наступної закупки?" },
+    { id:'s5_nobuy', label:"Виявлено причину відсутності закупки", type:'yn3', weight:1, show:['АКБ_РТТ','АКБ_НСТО'],
+      topic:"причини відсутності закупки",
+      growthNote:"Не виявлено причину, чому клієнт не робить закупку",
+      question:"У чому справжня причина, що клієнт зараз не закуповується? Як її відпрацювати?",
+      strengthQuestion:"Як вдалося докопатись до причини відсутності закупки?" }
   ]},
   { num:'06', title:"Динаміка розмови", phase:"Після завершення візиту", note:"Ці пункти реально оцінити лише подивившись на візит в цілому.", items:[
-    { id:'s6_focus', label:"Розмова була більше про клієнта, ніж про продукт", type:'yn3', weight:30,
+    { id:'s6_focus', label:"Розмова була більше про клієнта, ніж про продукт", type:'yn3', weight:1, show:['ПКБ_РТТ','ПКБ_НСТО'],
       topic:"фокусу розмови на клієнті, а не на продукті",
       growthNote:"Розмова була більше про продукт, ніж про клієнта",
       question:"Які запитання про бізнес клієнта зробили б розмову менш «про продукт» і більш про нього самого?",
       strengthQuestion:"Як тобі вдалося тримати розмову навколо клієнта, а не навколо продукту?" },
-    { id:'s6_who_talked', label:"Хто говорив більше", type:'select', options:['ТП','Клієнт','Порівну'], weight:20,
+    { id:'s6_who_talked', label:"Хто говорив більше", type:'select', options:['ТП','Клієнт','Порівну'], weight:1,
       topic:"того, хто більше говорив у розмові",
       scoreMap:{'ТП':0,'Порівну':60,'Клієнт':100},
       strengthMap:{'Клієнт':"Розмову більшою мірою вів клієнт, а не ТП"},
@@ -594,15 +606,14 @@ const SECTIONS = [
       question:"Які відкриті запитання дали б клієнту більше простору говорити?",
       strengthQuestion:"Як тобі вдалося розговорити клієнта, щоб він говорив більше за тебе?" },
     { id:'s6_duration', label:"Тривалість візиту", type:'number', unit:'хв' },
-    { id:'s6_interrupts', label:"Скільки разів ТП перебив клієнта", type:'number', unit:'разів' },
-    { id:'s6_tension', label:"Була напруга/конфлікт", type:'yn2', weight:20, invert:true,
+    { id:'s6_tension', label:"Була напруга/конфлікт", type:'yn2', weight:1, invert:true,
       fields:[{key:'resolution',label:"Як вийшов з ситуації"}],
       topic:"атмосфери розмови",
       strengthNote:"Зберіг спокій — напруги чи конфлікту під час візиту не виникло",
       growthNote:"Під час візиту виникла напруга або конфлікт",
       question:"Що там сталося і як вдалося (чи не вдалося) вийти з напруженої ситуації?",
       strengthQuestion:"Як тобі вдалося втримати спокійну атмосферу протягом усього візиту?" },
-    { id:'s6_result', label:"Результат візиту", type:'select', options:['Залишається в ПКБ','Переведено в АКБ','Залишається в АКБ','Потрібен повторний візит','Інше'], weight:30,
+    { id:'s6_result', label:"Результат візиту", type:'select', options:['Залишається в ПКБ','Переведено в АКБ','Залишається в АКБ','Потрібен повторний візит','Інше'], weight:1,
       topic:"результату візиту",
       allowComment:true, commentRequiredOn:['Інше'],
       scoreMap:{'Потрібен повторний візит':30,'Залишається в ПКБ':60,'Залишається в АКБ':80,'Переведено в АКБ':100},
@@ -612,6 +623,7 @@ const SECTIONS = [
       strengthQuestion:"Що зіграло вирішальну роль у результаті цього візиту?" }
   ]}
 ];
+
 const LEVELS = ['Низький','Середній','Високий','Готовий до самостійної роботи'];
 
 /* =========================================================
@@ -619,7 +631,7 @@ const LEVELS = ['Низький','Середній','Високий','Готов
    ========================================================= */
 let state = {
   screen: 'info',
-  info: { tpName:'', managerName:'', pointName:'', visitDate:'', timeFrom:'', format:'', clientType:'', status:'' },
+  info: { tpName:'', managerName:'', pointName:'', visitDate:'', timeFrom:'', clientType:'', status:'' },
   checklist: {},
   aiResult: null,
   sheetStatus: 'idle',
@@ -668,10 +680,10 @@ function setInfoChoice(field, value, btnEl){
 }
 function validateInfo(){
   const i = state.info;
-  const requiredOk = [i.tpName, i.managerName, i.pointName, i.visitDate, i.timeFrom, i.format, i.clientType, i.status];
+  const requiredOk = [i.tpName, i.managerName, i.pointName, i.visitDate, i.timeFrom, i.clientType, i.status];
   const filled = requiredOk.filter(v => v && String(v).trim() !== '').length;
-  document.getElementById('info-progress-note').textContent = filled + '/8 заповнено';
-  document.getElementById('btn-continue').disabled = filled < 8;
+  document.getElementById('info-progress-note').textContent = filled + '/7 заповнено';
+  document.getElementById('btn-continue').disabled = filled < 7;
 }
 function goToChecklist(){
   renderChecklist();
@@ -679,13 +691,29 @@ function goToChecklist(){
   saveState();
 }
 
+function backToInfo(){
+  // Повертаємось на «Дані візиту» без втрати введеного.
+  // restoreInfoUI() відновлює текстові поля, підсвічені чіпи й валідацію.
+  restoreInfoUI();
+  showScreen('info');
+  saveState();
+}
+
 /* =========================================================
    SCREEN 2 — CHECKLIST
    ========================================================= */
 function isItemRequired(item){ return item.type !== 'text2'; }
+function statusGroup(){
+  // Обидва варіанти ПКБ → 'ПКБ'; «АКБ (підтримка)» → 'АКБ'.
+  return (state.info.status || '').indexOf('АКБ') === 0 ? 'АКБ' : 'ПКБ';
+}
+function currentCombo(){
+  // Ключ виду 'ПКБ_РТТ' / 'АКБ_НСТО' — збігається зі значеннями в item.show.
+  return statusGroup() + '_' + (state.info.clientType || '');
+}
 function isItemVisible(item){
-  if(!item.showIf) return true;
-  return state.info.clientType === item.showIf;
+  if(!item.show) return true;            // без правила — показуємо завжди
+  return item.show.includes(currentCombo());
 }
 function visibleItems(sec){ return sec.items.filter(isItemVisible); }
 function isNegativeAnswer(item, answer){
@@ -851,6 +879,28 @@ function computeSectionScore(sec){
   });
   return weightTotal > 0 ? Math.round(sum / weightTotal) : null;
 }
+
+/**
+ * Статистика блоку для прозорого показника:
+ * scorable  — скільки видимих пунктів блоку взагалі беруть участь в оцінці;
+ * counted   — скільки з них отримали бал (Так/Ні або варіант зі scoreMap);
+ * na        — скільки позначено «Н/З» (у підрахунок НЕ входять);
+ * answered  — скільки взагалі має відповідь (Так/Ні/Н/З/варіант);
+ * complete  — чи всі оцінювані пункти вже мають відповідь.
+ */
+function sectionStats(sec){
+  let scorable = 0, counted = 0, na = 0, answered = 0;
+  visibleItems(sec).forEach(item => {
+    if(item.weight == null) return;
+    scorable++;
+    const d = state.checklist[item.id] || {};
+    if(d.answer) answered++;
+    if((item.type === 'yn3' || item.type === 'yn2') && d.answer === 'Н/З') na++;
+    if(itemScoreValue(item, d) != null) counted++;
+  });
+  return { scorable, counted, na, answered, complete: answered >= scorable };
+}
+
 function scoreColor(pct){
   if(pct == null) return 'var(--ink-500)';
   if(pct >= 70) return 'var(--accent-teal)';
@@ -859,13 +909,28 @@ function scoreColor(pct){
 }
 function updateAllSectionScores(){
   SECTIONS.forEach(sec => {
-    const pct = computeSectionScore(sec);
     const fill = document.getElementById('scorefill_' + sec.num);
     const label = document.getElementById('scoretext_' + sec.num);
     if(!fill || !label) return;
-    fill.style.width = (pct == null ? 0 : pct) + '%';
-    fill.style.background = scoreColor(pct);
-    label.textContent = 'Оцінка блоку: ' + (pct == null ? '—' : pct + '%');
+    const st = sectionStats(sec);
+    const pct = computeSectionScore(sec);
+
+    // Смужку заповнюємо лише коли блок повністю оцінено — щоб проміжні
+    // значення (коли ще не всі пункти заповнені) не вводили в оману.
+    fill.style.width = (st.complete && pct != null ? pct : 0) + '%';
+    fill.style.background = scoreColor(st.complete ? pct : null);
+
+    // Підпис: показуємо фінальний % лише для завершеного блоку.
+    // Н/З виводимо окремо, щоб було видно, що вони не входять у бал.
+    let naSuffix = st.na > 0 ? ' · Н/З не враховано: ' + st.na : '';
+    if(!st.complete){
+      label.textContent = 'Оцінка блоку: очікує заповнення (' + st.answered + '/' + st.scorable + ')' + naSuffix;
+    } else if(pct == null){
+      // усі пункти блоку — Н/З
+      label.textContent = 'Оцінка блоку: — (усі пункти «Н/З», бал не рахується)';
+    } else {
+      label.textContent = 'Оцінка блоку: ' + pct + '% (враховано ' + st.counted + ' з ' + st.scorable + ')' + naSuffix;
+    }
   });
 }
 
@@ -1086,7 +1151,6 @@ async function submitToSheet(){
     managerName: state.info.managerName,
     pointName: state.info.pointName,
     dateTime: formatDateTime(state.info),
-    format: state.info.format,
     clientType: state.info.clientType,
     status: state.info.status,
     confidenceLevel: state.aiResult ? state.aiResult.confidenceLevel : '',
@@ -1195,7 +1259,6 @@ function buildDocxBody(){
   body += infoLine('Хто оцінює (ПІБ КН/наставника)', state.info.managerName);
   body += infoLine('Назва точки / СТО', state.info.pointName);
   body += infoLine('Дата і час', formatDateTime(state.info));
-  body += infoLine('Формат візиту', state.info.format);
   body += infoLine('Тип клієнта', state.info.clientType);
   body += infoLine('Статус точки', state.info.status);
   body += xEmpty();
@@ -1320,7 +1383,7 @@ async function downloadDocx(){
    RESET
    ========================================================= */
 function resetApp(){
-  state.info = { tpName:'', managerName:'', pointName:'', visitDate:'', timeFrom:'', format:'', clientType:'', status:'' };
+  state.info = { tpName:'', managerName:'', pointName:'', visitDate:'', timeFrom:'', clientType:'', status:'' };
   state.checklist = {};
   SECTIONS.forEach(sec => sec.items.forEach(item => { state.checklist[item.id] = { answer:'', comment:'' }; }));
   state.aiResult = null;
@@ -1329,7 +1392,7 @@ function resetApp(){
   document.querySelectorAll('#screen-info input').forEach(el => el.value = '');
   document.querySelectorAll('#screen-info .chip').forEach(el => el.classList.remove('active'));
   document.getElementById('btn-continue').disabled = true;
-  document.getElementById('info-progress-note').textContent = '0/8 заповнено';
+  document.getElementById('info-progress-note').textContent = '0/7 заповнено';
   hideDraftBanner();
   showScreen('info');
 }
@@ -1383,7 +1446,7 @@ function restoreInfoUI(){
     const el = document.getElementById(map[k]);
     if(el) el.value = state.info[k] || '';
   });
-  const chipGroups = { format:'grp_format', clientType:'grp_clientType', status:'grp_status' };
+  const chipGroups = { clientType:'grp_clientType', status:'grp_status' };
   Object.keys(chipGroups).forEach(k => {
     const grp = document.getElementById(chipGroups[k]);
     if(!grp) return;
